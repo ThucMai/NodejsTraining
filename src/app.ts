@@ -1,22 +1,40 @@
-import express from 'express';
+import express, { Application } from 'express';
 import connectDB from './database';
 import dotenv from 'dotenv';
-import { getAllUsers, getUserById, createUser, updateUser, deleteUser } from './controllers/user.controller';
+import router from './routes/index';
 
-dotenv.config();
-const port = process.env.PORT;
-const app = express();
+class App {
+    public app: Application;
+    private port: string | number;
 
-connectDB();
+    constructor() {
+        dotenv.config();
+        this.app = express();
+        this.port = process.env.PORT || 3000;
 
-app.use(express.json());
+        this.connectDatabase();
+        this.middlewares();
+        this.routes();
+    }
 
-app.get('/', getAllUsers);
-app.get('/:id', getUserById);
-app.post('/', createUser);
-app.put('/:id', updateUser);
-app.delete('/:id', deleteUser);
+    private connectDatabase(): void {
+        connectDB();
+    }
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+    private middlewares(): void {
+        this.app.use(express.json());
+        this.app.use(express.urlencoded({ extended: true }));
+    }
+
+    private routes(): void {
+        this.app.use('/', router);
+    }
+
+    public listen(): void {
+        this.app.listen(this.port, () => {
+            console.log(`Server running on port ${this.port}`);
+        });
+    }
+}
+
+export default App;

@@ -2,9 +2,12 @@
   "name": "NodejsTraining",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx tsc && node dist/swagger.js",
+    "watch": "nodemon --watch src --watch config -e js,json,ts --exec npm run serve",
+    "serve": "npx tsc && node dist/swagger.js && node dist/index.js"
   },
   "repository": {
     "type": "git",
@@ -20,7 +23,12 @@
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/node": "^22.7.5",
-    "express": "^2.5.11",
+    "@types/swagger-ui-express": "^4.1.6",
+    "express": "^4.21.1",
+    "nodemon": "^3.1.7",
+    "swagger-autogen": "^2.23.7",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.2"
   },
