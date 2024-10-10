@@ -1,5 +1,16 @@
 // Create Service
 import { UserModel, IUser } from '../entities/user.entity';
+const bcrypt = require('bcrypt');
+const hashPassword = async (password: string) => {
+    try {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        return hashedPassword;
+    } catch (error) {
+        console.error('Error hashing password:', error);
+        throw error;
+    }
+};
 
 export class UserService {
     // Get all users
@@ -14,7 +25,9 @@ export class UserService {
 
     // Create a new user
     async createUser(data: Partial<IUser>): Promise<IUser> {
-        const user = new UserModel(data);
+        const password = data.password || '';
+        const hashedPassword = await hashPassword(password);
+        const user = new UserModel({ ...data, password: hashedPassword });
         return await user.save();
     }
 

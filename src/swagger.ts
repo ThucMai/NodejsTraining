@@ -1,28 +1,29 @@
-import swaggerAutogen from 'swagger-autogen';
+import fs from 'fs';
+import path from 'path';
+const swaggerJsDoc = require('swagger-jsdoc');
 
-const doc = {
-    info: {
-        version: 'v1.0.0',
-        title: 'Nodejs Training Project',
-        description: ''
-    },
-    servers: [
-        {
-            url: 'http://localhost:3000',
-            description: ''
+// Swagger options
+const swaggerOptions = {
+    swaggerDefinition: {
+        openapi: "3.0.0",
+        info: {
+            title: "Nodejs Training API",
+            version: "1.0.0",
+            description: "API for creating and managing users",
         },
-    ],
-    components: {
-        securitySchemes: {
-            bearerAuth: {
-                type: 'http',
-                scheme: 'bearer',
-            }
-        }
-    }
+        servers: [
+            {
+                url: "http://localhost:3000",
+                description: "Local server",
+            },
+        ],
+    },
+    apis: [path.join(__dirname, '../src/routes/*.ts')],
 };
 
-const outputFile = '../logs/swagger_output.json';
-const endpointsFiles = ['./src/routes/index.ts'];
+// Generate swagger docs
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
-swaggerAutogen({openapi: '3.0.0'})(outputFile, endpointsFiles, doc);
+// Write swagger JSON to a file
+const swaggerFilePath = path.join(__dirname, '../logs/swagger_output.json');
+fs.writeFileSync(swaggerFilePath, JSON.stringify(swaggerDocs, null, 2));

@@ -2,6 +2,7 @@ import express, { Application } from 'express';
 import connectDB from './database';
 import dotenv from 'dotenv';
 import router from './routes/index';
+import {startAgendaJobs} from './database_health'
 
 class App {
     public app: Application;
@@ -13,12 +14,17 @@ class App {
         this.port = process.env.PORT || 3000;
 
         this.connectDatabase();
+        this.checkDatabaseHealth();
         this.middlewares();
         this.routes();
     }
 
     private connectDatabase(): void {
         connectDB();
+    }
+
+    private checkDatabaseHealth(): void {
+        startAgendaJobs();
     }
 
     private middlewares(): void {

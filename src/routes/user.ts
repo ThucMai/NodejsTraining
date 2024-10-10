@@ -1,6 +1,6 @@
 import { getAllUsers, getUserById, createUser, updateUser, deleteUser } from '../controllers/user.controller';
 import express, { Request, Response,NextFunction } from 'express';
-import validateUser from '../validate/user.validate';
+import { createUserRule, updateUserRule } from '../validate/user.validate';
 const user_router = express.Router();
 
 /**
@@ -21,6 +21,10 @@ user_router.get('/', getAllUsers);
  *   get:
  *     summary: This endpoint allows you to get a user by id
  *     description: Get user by id
+ *     parameters:
+ *     - in: path
+ *       name: id
+ *       required: true
  *     responses:
  *       201:
  *         description: Get user successfully
@@ -62,10 +66,10 @@ user_router.get('/:id', getUserById);
  *     responses:
  *       201:
  *         description: User created successfully
- *       404:
- *         description: Invalid input
+ *       400:
+ *         description: error message
  */
-user_router.post('/', validateUser, createUser);
+user_router.post('/', createUserRule, createUser);
 
 /**
  * @swagger
@@ -73,6 +77,10 @@ user_router.post('/', validateUser, createUser);
  *   put:
  *     summary: Edit a new user
  *     description: This endpoint allows you to edit a new user.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
  *     requestBody:
  *       required: true
  *       content:
@@ -103,7 +111,7 @@ user_router.post('/', validateUser, createUser);
  *       400:
  *         description: Invalid input
  */
-user_router.put('/:id', validateUser, updateUser);
+user_router.put('/:id', updateUserRule, updateUser);
 
 /**
  * @swagger
@@ -111,6 +119,10 @@ user_router.put('/:id', validateUser, updateUser);
  *   delete:
  *     summary: Delete a user
  *     description: This endpoint allows you to delete a user.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
  *     responses:
  *       201:
  *         description: User deleted successfully
