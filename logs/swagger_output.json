@@ -12,10 +12,112 @@
     }
   ],
   "paths": {
+    "/login": {
+      "post": {
+        "summary": "Login to web",
+        "description": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "itachi"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "thisispassword"
+                  }
+                },
+                "required": [
+                  "username",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Login successfully"
+          },
+          "400": {
+            "description": "error message"
+          }
+        }
+      }
+    },
+    "/register": {
+      "post": {
+        "summary": "Register a user",
+        "description": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "UchihaItachi"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "Uchiha Itachi"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "itachi@uchiha.com"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "example": "03367876621"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "thisispassword@1"
+                  }
+                },
+                "required": [
+                  "name",
+                  "email",
+                  "phone",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully"
+          },
+          "400": {
+            "description": "error message"
+          }
+        }
+      }
+    },
     "/user": {
       "get": {
         "summary": "This endpoint allows you to get all users",
         "description": "Get all users in user table",
+        "components": null,
+        "securitySchemes": null,
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "201": {
             "description": "Get users successfully"
@@ -73,6 +175,18 @@
       "get": {
         "summary": "This endpoint allows you to get a user by id",
         "description": "Get user by id",
+        "components": null,
+        "securitySchemes": null,
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",

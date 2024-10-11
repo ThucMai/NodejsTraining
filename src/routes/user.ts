@@ -1,6 +1,8 @@
 import { getAllUsers, getUserById, createUser, updateUser, deleteUser } from '../controllers/user.controller';
 import express, { Request, Response,NextFunction } from 'express';
 import { createUserRule, updateUserRule } from '../validate/user.validate';
+import { authenticateJWT } from '../middleware/auth.middleware';
+import cors from 'cors'
 const user_router = express.Router();
 
 /**
@@ -9,11 +11,20 @@ const user_router = express.Router();
  *   get:
  *     summary: This endpoint allows you to get all users
  *     description: Get all users in user table
+ *     components:
+ *     securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ * 
+ *     security:
+ *      - bearerAuth: [] 
  *     responses:
  *       201:
  *         description: Get users successfully
  */
-user_router.get('/', getAllUsers);
+user_router.get('/', authenticateJWT, getAllUsers);
 
 /**
  * @swagger
@@ -21,6 +32,15 @@ user_router.get('/', getAllUsers);
  *   get:
  *     summary: This endpoint allows you to get a user by id
  *     description: Get user by id
+ *     components:
+ *     securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ * 
+ *     security:
+ *      - bearerAuth: [] 
  *     parameters:
  *     - in: path
  *       name: id
@@ -31,7 +51,7 @@ user_router.get('/', getAllUsers);
  *       404:
  *         description: User not found
  */
-user_router.get('/:id', getUserById);
+user_router.get('/:id', authenticateJWT, getUserById);
 
 /**
  * @swagger
@@ -69,7 +89,7 @@ user_router.get('/:id', getUserById);
  *       400:
  *         description: error message
  */
-user_router.post('/', createUserRule, createUser);
+user_router.post('/', authenticateJWT, createUserRule, createUser);
 
 /**
  * @swagger
@@ -111,7 +131,7 @@ user_router.post('/', createUserRule, createUser);
  *       400:
  *         description: Invalid input
  */
-user_router.put('/:id', updateUserRule, updateUser);
+user_router.put('/:id', authenticateJWT, updateUserRule, updateUser);
 
 /**
  * @swagger
@@ -129,6 +149,8 @@ user_router.put('/:id', updateUserRule, updateUser);
  *       400:
  *         description: Invalid input
  */
-user_router.delete('/:id', deleteUser);
+user_router.delete('/:id', cors({
+    origin: 'http://localhost:3000', //Only allow this domain request
+}), authenticateJWT, deleteUser);
 
 export default user_router;
