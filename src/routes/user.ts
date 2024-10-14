@@ -11,15 +11,10 @@ const user_router = express.Router();
  *   get:
  *     summary: This endpoint allows you to get all users
  *     description: Get all users in user table
- *     components:
- *     securitySchemes:
- *     bearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
- * 
+ *     tags:
+ *       - User
  *     security:
- *      - bearerAuth: [] 
+ *     - bearerAuth: [] 
  *     responses:
  *       201:
  *         description: Get users successfully
@@ -32,15 +27,10 @@ user_router.get('/', authenticateJWT, getAllUsers);
  *   get:
  *     summary: This endpoint allows you to get a user by id
  *     description: Get user by id
- *     components:
- *     securitySchemes:
- *     bearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
- * 
+ *     tags:
+ *       - User
  *     security:
- *      - bearerAuth: [] 
+ *     - bearerAuth: [] 
  *     parameters:
  *     - in: path
  *       name: id
@@ -59,6 +49,10 @@ user_router.get('/:id', authenticateJWT, getUserById);
  *   post:
  *     summary: Create a new user
  *     description: This endpoint allows you to create a new user.
+ *     tags:
+ *       - User
+ *     security:
+ *     - bearerAuth: [] 
  *     requestBody:
  *       required: true
  *       content:
@@ -97,6 +91,10 @@ user_router.post('/', authenticateJWT, createUserRule, createUser);
  *   put:
  *     summary: Edit a new user
  *     description: This endpoint allows you to edit a new user.
+ *     security:
+ *     - bearerAuth: [] 
+ *     tags:
+ *       - User
  *     parameters:
  *       - in: path
  *         name: id
@@ -139,6 +137,10 @@ user_router.put('/:id', authenticateJWT, updateUserRule, updateUser);
  *   delete:
  *     summary: Delete a user
  *     description: This endpoint allows you to delete a user.
+ *     tags:
+ *       - User
+ *     security:
+ *     - bearerAuth: [] 
  *     parameters:
  *       - in: path
  *         name: id
