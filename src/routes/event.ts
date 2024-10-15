@@ -1,7 +1,6 @@
-import { createEvent, getEvents, editEvent, deleteEvent } from '../controllers/event.controller';
+import { createEvent, getEvents, getEvent, editEvent, deleteEvent } from '../controllers/event.controller';
 import express, { Request, Response, NextFunction } from 'express';
 // import { createUserRule, updateUserRule } from '../validate/user.validate';
-import { authenticateJWT } from '../middleware/auth.middleware';
 import cors from 'cors'
 const event_router = express.Router();
 
@@ -43,7 +42,7 @@ event_router.get('/', getEvents);
  *       400:
  *         description: Event not found
  */
-event_router.get('/:id', getEvents);
+event_router.get('/:id', getEvent);
 
 /**
  * @swagger

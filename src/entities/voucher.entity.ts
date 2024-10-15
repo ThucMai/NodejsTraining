@@ -8,6 +8,7 @@ export interface IVoucher extends Document {
     issued_to: String;
     issued_date: Date;
     expired_date: Date;
+    status: String;
 }
 
 const VoucherSchema: Schema = new Schema({
@@ -17,6 +18,7 @@ const VoucherSchema: Schema = new Schema({
     issued_to: { type: String},
     issued_date: { type: Date, required: true },
     expired_date: { type: Date, required: true },
+    status: { type: String, default: 'Active' }
 });
 
 export const VoucherModel = mongoose.model<IVoucher>('vouchers', VoucherSchema);

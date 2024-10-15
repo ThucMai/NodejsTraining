@@ -4,7 +4,12 @@ import { EventService } from '../services/event.service';
 const eventService = new EventService();
 
 export const getEvents = async (req: Request, res: Response) => {
-    const result = await eventService.getEvents(req.params.id);
+    const result = await eventService.getEvents();
+    res.json(result);
+};
+
+export const getEvent = async (req: Request, res: Response) => {
+    const result = await eventService.getEvent(req.params.id);
     res.json(result);
 };
 

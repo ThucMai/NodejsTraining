@@ -1,7 +1,6 @@
 import { createVoucher, getVouchers, editVoucher, deleteVoucher } from '../controllers/voucher.controller';
 import express, { Request, Response, NextFunction } from 'express';
 // import { createUserRule, updateUserRule } from '../validate/user.validate';
-import { authenticateJWT } from '../middleware/auth.middleware';
 import cors from 'cors'
 const voucher_router = express.Router();
 

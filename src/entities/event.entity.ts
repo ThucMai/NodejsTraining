@@ -8,6 +8,7 @@ export interface IEvent extends Document {
     event_date_end: Date;
     voucher_quantity: Number;
     voucher_released: Number;
+    status: String;
 }
 
 const EventSchema: Schema = new Schema({
@@ -15,8 +16,9 @@ const EventSchema: Schema = new Schema({
     description: { type: String },
     event_date_start: { type: Date, required: true },
     event_date_end: { type: Date, required: true },
-    voucher_quantity: { type: Number},
-    voucher_released: { type: Number},
+    voucher_quantity: { type: Number },
+    voucher_released: { type: Number },
+    status: { type: String, default: 'Active' },
 });
 
 export const EventModel = mongoose.model<IEvent>('events', EventSchema);

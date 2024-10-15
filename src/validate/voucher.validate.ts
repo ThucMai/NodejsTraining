@@ -3,12 +3,12 @@ import Joi from 'joi';
 
 export const createEventRule = (req: Request, res: Response, next: NextFunction) => {
     const schema =  Joi.object({
-        event_name: Joi.string().min(3).max(30).required(),
-        description: Joi.string().optional(),
-        event_date_start: Joi.date().required(),
-        event_date_end: Joi.date().required(),
-        voucher_quantity: Joi.number().required(),
-        voucher_released: Joi.number().required()
+        event_id: Joi.string().min(3).max(30).required(),
+        event: Joi.object().optional(),
+        voucher_code: Joi.string().min(3).max(30).required(),
+        issued_to: Joi.string().email().required(),
+        issued_date: Joi.number().required(),
+        expired_date: Joi.number().required()
     });
     return validateEvent(schema)(req, res, next);
 }
