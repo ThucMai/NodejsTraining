@@ -1,4 +1,5 @@
 import { createEvent, getEvents, getEvent, editEvent, deleteEvent } from '../controllers/event.controller';
+import { editable, enterEdit, maintainEdit } from '../controllers/event_lock.controller';
 import express, { Request, Response, NextFunction } from 'express';
 // import { createUserRule, updateUserRule } from '../validate/user.validate';
 import cors from 'cors'
@@ -169,5 +170,94 @@ event_router.put('/:id', editEvent);
  *         description: Some thing wrong
  */
 event_router.delete('/:id', deleteEvent);
+
+/**
+ * @swagger
+ * /event/{id}/editable/me:
+ *   post:
+ *     summary: Check editable event
+ *     description: This endpoint allows you to check editable event.
+ *     tags:
+ *       - Event/Lock
+ *     security:
+ *     - bearerAuth: [] 
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Editable for you
+ *       409:
+ *         description: You cant edit
+ */
+event_router.post('/:id/editable/me', editable);
+
+/**
+ * @swagger
+ * /event/{id}/editable/me:
+ *   post:
+ *     summary: Check editable event
+ *     description: This endpoint allows you to check editable event.
+ *     tags:
+ *       - Event/Lock
+ *     security:
+ *     - bearerAuth: [] 
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               event_id:
+ *                 type: string
+ *                 example: "012313-3kd32s"
+ *               user_id:
+ *                 type: string
+ *                 example: "012313-3kd32s"
+ *               status:
+ *                 type: string
+ *                 example: "Locked"
+ *               time_lock:
+ *                 type: date
+ *                 example: "2024-10-11T01:25:18.375+00:00"
+ *             required:
+ *               - event_id
+ *               - user_id
+ *               - time_lock
+ *     responses:
+ *       200:
+ *         description: Editable for you
+ *       409:
+ *         description: You cant edit
+ */
+event_router.post('/:id/editable/release', enterEdit);
+
+/**
+ * @swagger
+ * /event/{id}/editable/me:
+ *   post:
+ *     summary: Check editable event
+ *     description: This endpoint allows you to check editable event.
+ *     tags:
+ *       - Event/Lock
+ *     security:
+ *     - bearerAuth: [] 
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Editable for you
+ *       409:
+ *         description: You cant edit
+ */
+event_router.post('/:id/editable/maintain', maintainEdit);
 
 export default event_router;

@@ -2,8 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
 const jwtSecret = process.env.JWT_SECRET || '';
-interface AuthRequest extends Request {
-    username?: string;
+export interface AuthRequest extends Request {
+    user?: {
+        user_id: string;
+    };
 }
 
 export const authenticateJWT = (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -18,7 +20,8 @@ export const authenticateJWT = (req: AuthRequest, res: Response, next: NextFunct
             }
             // req.user = user;
             if (typeof user === 'object' && user) {
-                req.username = user.username; 
+                req.user = req.user || { user_id: '' };
+                req.user.user_id = user.user_id;
             }
             next();
         });

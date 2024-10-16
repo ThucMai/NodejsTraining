@@ -12,10 +12,10 @@ export class VoucherService {
     }
 
     // Create Voucher
-    async createVoucher(data: Partial<IVoucher>): Promise<IVoucher | boolean> {
+    async createVoucher(data: Partial<IVoucher>): Promise<IVoucher | boolean | string> {
         const MAX_RETRIES = 3;
         let retryCount = 0;
-    
+
         while (retryCount < MAX_RETRIES) {
             const session = await VoucherModel.startSession();
             session.startTransaction();
@@ -24,13 +24,13 @@ export class VoucherService {
                 const eventService = new EventService();
                 if (!data.event_id) {
                     await session.abortTransaction();
-                    return false;
+                    return 'Cannot find event';
                 }
                 const event = await eventService.getEvent(data.event_id);
 
                 if (!event) {
                     await session.abortTransaction();
-                    return false;
+                    return 'Cannot find event';
                 }
         
                 // Check if the event has ended or all vouchers have been released
@@ -39,7 +39,13 @@ export class VoucherService {
                     return false;
                 }
                 let voucher_code = data.voucher_code ?? '';
-                if (!voucher_code) {
+                if (voucher_code) {
+                    const isCodeExist = await VoucherModel.findOne({ voucher_code });
+                    if (isCodeExist) {
+                        await session.abortTransaction();
+                        return false;
+                    }
+                } else {
                     voucher_code = generateVoucherCode(7);
                     while (await VoucherModel.findOne({ voucher_code })) {
                         voucher_code = generateVoucherCode(7);
