@@ -1,12 +1,13 @@
-import { VoucherModel, IVoucher } from '../entities/voucher.entity';
+import { VoucherModel, IVoucher, VoucherStatus } from '../entities/voucher.entity';
 import { EventService } from './event.service';
 import EmailQueue from '../queues/sendmail';
+import { EventModel } from '../entities/event.entity';
 
 export class VoucherService {
     // Get Vouchers
     async getVouchers(id: string | null): Promise<IVoucher[]> {
         if (!id) {
-            return await VoucherModel.find();
+            return await VoucherModel.find({ status: VoucherStatus.ACTIVE });
         }
         return await VoucherModel.find({ '_id': id });
     }
@@ -21,18 +22,18 @@ export class VoucherService {
             session.startTransaction();
         
             try {
-                const eventService = new EventService();
                 if (!data.event_id) {
                     await session.abortTransaction();
                     return 'Cannot find event';
                 }
+                const eventService = new EventService();
                 const event = await eventService.getEvent(data.event_id);
 
-                if (!event) {
+                if (!event || event.voucher_quantity < event.voucher_released) {
                     await session.abortTransaction();
                     return 'Cannot find event';
                 }
-        
+
                 // Check if the event has ended or all vouchers have been released
                 if (event.event_date_end < new Date() || event.voucher_quantity <= event.voucher_released) {
                     await session.abortTransaction();
@@ -51,10 +52,23 @@ export class VoucherService {
                         voucher_code = generateVoucherCode(7);
                     }
                 }
-        
+
+                const eventUpdate = await EventModel.findOneAndUpdate(
+                    { _id: event._id }, { $inc: { voucher_released: 1 } }, { new: true }
+                );
+                if (!eventUpdate) {
+                    await session.abortTransaction();
+                    return false;
+                }
+
                 // Create and save the voucher in the transaction session
-                const voucher = new VoucherModel({ ...data, voucher_code });
-                const savedVoucher = await voucher.save({ session });
+                if (!data.issued_date) {
+                    data.issued_date = new Date();
+                }
+                data.event = eventUpdate;
+                data.expired_date = eventUpdate.event_date_end;
+                const voucher = new VoucherModel({ ...data, voucher_code,  });
+                const savedVoucher = await voucher.save();
 
                 // Push email to queue
                 EmailQueue.add({
@@ -78,12 +92,12 @@ export class VoucherService {
 
     // Edit Voucher
     async editVoucher(id: string, data: Partial<IVoucher>): Promise<IVoucher | null> {
-        return await VoucherModel.findByIdAndUpdate(id, data, { new: true });
+        return await VoucherModel.findOneAndUpdate({ id, status: VoucherStatus.ACTIVE }, data, { new: true });
     }
 
     // Delete Voucher
     async deleteVoucher(id: string) {
-        return await VoucherModel.findByIdAndUpdate(id, {'status': 'Inactive'});;
+        return await VoucherModel.findByIdAndUpdate(id, {'status': VoucherStatus.INACTIVE});;
     }
 }
 

@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 const jwtSecret = process.env.JWT_SECRET || '';
 export interface AuthRequest extends Request {
     user?: {
-        user_id: string;
+        id: string;
     };
 }
 
@@ -18,10 +18,10 @@ export const authenticateJWT = (req: AuthRequest, res: Response, next: NextFunct
             if (err) {
                 return res.sendStatus(403); // Forbidden if token is invalid
             }
-            // req.user = user;
+
             if (typeof user === 'object' && user) {
-                req.user = req.user || { user_id: '' };
-                req.user.user_id = user.user_id;
+                req.user = req.user || { id: '' };
+                req.user.id = user.id;
             }
             next();
         });

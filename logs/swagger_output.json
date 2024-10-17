@@ -150,7 +150,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "voucher_name": {
+                  "event_name": {
                     "type": "string",
                     "example": "Super sale 10.10"
                   },
@@ -158,11 +158,11 @@
                     "type": "text",
                     "example": "what ever you want"
                   },
-                  "voucher_date_start": {
+                  "event_date_start": {
                     "type": "string",
                     "example": "2024-10-01T01:25:18.375+00:00"
                   },
-                  "voucher_date_end": {
+                  "event_date_end": {
                     "type": "string",
                     "example": "2024-10-11T01:25:18.375+00:00"
                   },
@@ -176,10 +176,10 @@
                   }
                 },
                 "required": [
-                  "voucher_name",
+                  "event_name",
                   "description",
-                  "voucher_date_start",
-                  "voucher_date_end",
+                  "event_date_start",
+                  "event_date_end",
                   "voucher_quantity",
                   "voucher_released"
                 ]
@@ -250,7 +250,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "voucher_name": {
+                  "event_name": {
                     "type": "string",
                     "example": "Super sale 10.10"
                   },
@@ -258,11 +258,11 @@
                     "type": "text",
                     "example": "what ever you want"
                   },
-                  "voucher_date_start": {
+                  "event_date_start": {
                     "type": "string",
                     "example": "2024-10-01T01:25:18.375+00:00"
                   },
-                  "voucher_date_end": {
+                  "event_date_end": {
                     "type": "string",
                     "example": "2024-10-11T01:25:18.375+00:00"
                   },
@@ -276,10 +276,10 @@
                   }
                 },
                 "required": [
-                  "voucher_name",
+                  "event_name",
                   "description",
-                  "voucher_date_start",
-                  "voucher_date_end",
+                  "event_date_start",
+                  "event_date_end",
                   "voucher_quantity",
                   "voucher_released"
                 ]
@@ -320,6 +320,93 @@
           },
           "456": {
             "description": "Some thing wrong"
+          }
+        }
+      }
+    },
+    "/event/{id}/editable/me": {
+      "post": {
+        "summary": "Check editable event",
+        "description": "This endpoint allows you to check editable event.",
+        "tags": [
+          "Event/Lock"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Editable for you"
+          },
+          "409": {
+            "description": "You cant edit"
+          }
+        }
+      }
+    },
+    "/event/{id}/editable/release": {
+      "post": {
+        "summary": "Check editable event",
+        "description": "This endpoint allows you to check editable event.",
+        "tags": [
+          "Event/Lock"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Editable for you"
+          },
+          "409": {
+            "description": "You cant edit"
+          }
+        }
+      }
+    },
+    "/event/{id}/editable/maintain": {
+      "post": {
+        "summary": "Check editable event",
+        "description": "This endpoint allows you to check editable event.",
+        "tags": [
+          "Event/Lock"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Editable for you"
+          },
+          "409": {
+            "description": "You cant edit"
           }
         }
       }

@@ -1,6 +1,6 @@
 import { createVoucher, getVouchers, editVoucher, deleteVoucher } from '../controllers/voucher.controller';
 import express, { Request, Response, NextFunction } from 'express';
-// import { createUserRule, updateUserRule } from '../validate/user.validate';
+import { createVoucherRule, updateVoucherRule } from '../validate/voucher.validate';
 import cors from 'cors'
 const voucher_router = express.Router();
 
@@ -92,7 +92,7 @@ voucher_router.get('/:id', getVouchers);
  *       456:
  *         description: Some thing wrong
  */
-voucher_router.post('/', createVoucher);
+voucher_router.post('/', createVoucherRule, createVoucher);
 
 /**
  * @swagger
@@ -146,7 +146,7 @@ voucher_router.post('/', createVoucher);
  *       456:
  *         description: Some thing wrong
  */
-voucher_router.put('/:id', editVoucher);
+voucher_router.put('/:id', updateVoucherRule, editVoucher);
 
 /**
  * @swagger

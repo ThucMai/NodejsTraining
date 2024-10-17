@@ -11,6 +11,11 @@ export interface IEvent extends Document {
     status: String;
 }
 
+const EventStatus = {
+    ACTIVE: 'Active',
+    INACTIVE: 'Inactive',
+};
+
 const EventSchema: Schema = new Schema({
     event_name: { type: String, required: true },
     description: { type: String },
@@ -18,7 +23,8 @@ const EventSchema: Schema = new Schema({
     event_date_end: { type: Date, required: true },
     voucher_quantity: { type: Number },
     voucher_released: { type: Number },
-    status: { type: String, default: 'Active' },
+    status: { type: String, default: 'Active', enum: Object.values(EventStatus) },
 });
 
-export const EventModel = mongoose.model<IEvent>('events', EventSchema);
+const EventModel = mongoose.model<IEvent>('events', EventSchema)
+export { EventModel, EventStatus };

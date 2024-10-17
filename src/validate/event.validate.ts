@@ -28,10 +28,10 @@ export const updateEventRule = (req: Request, res: Response, next: NextFunction)
 const validateEvent = (schema: Joi.ObjectSchema) => {
     return (req: Request, res: Response, next: NextFunction): void => {
         const { error } = schema.validate(req.body);
-            if (error) {
-                res.status(400).json({ error: error.details[0].message });
-            } else{
-                next();
-            }
+        if (error) {
+            res.status(400).json({ error: error.details[0].message });
+        } else{
+            next();
+        }
     }
 }

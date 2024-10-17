@@ -1,13 +1,13 @@
-import { EventModel, IEvent } from '../entities/event.entity';
+import { EventModel, IEvent, EventStatus } from '../entities/event.entity';
 
 export class EventService {
     // Get events
     async getEvents(): Promise<IEvent[]> {
-        return await EventModel.find();
+        return await EventModel.find({ status: EventStatus.ACTIVE });
     }
 
     async getEvent(id: String): Promise<IEvent | null> {
-        return await EventModel.findOne({ '_id': id });
+        return await EventModel.findOne({ _id: id, status: EventStatus.ACTIVE });
     }
 
     // Create event
@@ -23,7 +23,7 @@ export class EventService {
 
         try {
             const event = await EventModel.findById(id);
-            if (!event) {
+            if (!event || event.status == EventStatus.INACTIVE) {
                 await session.abortTransaction();
                 return false;
             }
@@ -46,6 +46,7 @@ export class EventService {
 
     // Delete event
     async deleteEvent(id: String) {
-        return await EventModel.findByIdAndUpdate(id, { status: 'Inactive' });
+        await EventModel.findByIdAndUpdate(id, { status: EventStatus.INACTIVE });
+        return true
     }
 }

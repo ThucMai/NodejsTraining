@@ -11,6 +11,11 @@ export interface IVoucher extends Document {
     status: String;
 }
 
+const VoucherStatus = {
+    ACTIVE: 'Active',
+    INACTIVE: 'Inactive',
+};
+
 const VoucherSchema: Schema = new Schema({
     event_id: { type: String, required: true },
     event: { type: Object },
@@ -18,7 +23,9 @@ const VoucherSchema: Schema = new Schema({
     issued_to: { type: String},
     issued_date: { type: Date, required: true },
     expired_date: { type: Date, required: true },
-    status: { type: String, default: 'Active' }
+    status: { type: String, default: 'Active', enum: Object.values(VoucherStatus) }
 });
 
-export const VoucherModel = mongoose.model<IVoucher>('vouchers', VoucherSchema);
+const VoucherModel = mongoose.model<IVoucher>('vouchers', VoucherSchema);
+
+export { VoucherModel, VoucherStatus }
