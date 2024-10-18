@@ -8,11 +8,12 @@ const time_lock = parseInt(process.env.TIME_LOCK_EVENT || '5'); //minutes
 
 export class EventLockService {
     async editable(event_id: string, req: AuthRequest): Promise<boolean> {
-        const session = await mongoose.startSession();
+
+        const session = await EventLockModel.startSession();
         session.startTransaction();
 
         try {
-            const event = await EventModel.findById(event_id).session(session);
+            const event = await EventModel.findById(event_id);
 
             if (!event) {
                 await session.abortTransaction();
@@ -25,7 +26,7 @@ export class EventLockService {
                 event_id,
                 user_id,
                 time_lock: { $gt: new Date(new Date().getTime() - time_lock * 60000) }
-            }).session(session);
+            });
 
             if (eventLockByMe) {
                 await session.abortTransaction();
@@ -36,7 +37,7 @@ export class EventLockService {
             const eventLocked = await EventLockModel.findOne({
                 event_id,
                 time_lock: { $gt: new Date(new Date().getTime() - time_lock * 60000) }
-            }).session(session);
+            });
 
             if (eventLocked) {
                 await session.abortTransaction();
@@ -55,7 +56,7 @@ export class EventLockService {
     }
 
     async enterEdit(event_id: string, req: AuthRequest): Promise<boolean> {
-        const session = await mongoose.startSession();
+        const session = await EventLockModel.startSession();
         session.startTransaction();
 
         try {
@@ -66,7 +67,7 @@ export class EventLockService {
                 return false
             };
 
-            await EventLockModel.deleteMany({ event_id }).session(session);
+            await EventLockModel.deleteMany({ event_id });
 
             const user_id = req?.user?.id || 0;
             const eventLock = new EventLockModel({
@@ -74,7 +75,7 @@ export class EventLockService {
                 user_id: user_id,
                 time_lock: new Date()
             });
-            await eventLock.save({ session });
+            await eventLock.save();
 
             await session.commitTransaction();
             session.endSession();

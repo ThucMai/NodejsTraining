@@ -8,11 +8,11 @@ export interface IEventLock extends Document {
     time_lock: Date;
 }
 
-const EventSchema: Schema = new Schema({
+const EventLockSchema: Schema = new Schema({
     event_id: { type: String, required: true },
     user_id: { type: String, required: true },
     status: { type: String, default: 'Locked' },
     time_lock: { type: Date, required: true },
 });
 
-export const EventLockModel = mongoose.model<IEventLock>('event_lock', EventSchema);
+export const EventLockModel = mongoose.model<IEventLock>('event_lock', EventLockSchema);
