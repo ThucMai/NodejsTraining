@@ -34,11 +34,11 @@
                 "properties": {
                   "username": {
                     "type": "string",
-                    "example": "itachi"
+                    "example": "UchihaItachi"
                   },
                   "password": {
                     "type": "string",
-                    "example": "thisispassword"
+                    "example": "thisispassword@1"
                   }
                 },
                 "required": [

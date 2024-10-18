@@ -19,10 +19,10 @@ const auth_router = express.Router();
  *             properties:
  *               username:
  *                 type: string
- *                 example: "itachi"
+ *                 example: "UchihaItachi"
  *               password:
  *                 type: string
- *                 example: "thisispassword"
+ *                 example: "thisispassword@1"
  *             required:
  *               - username
  *               - password

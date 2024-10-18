@@ -2,53 +2,88 @@ import { EventLockModel, IEventLock } from '../entities/event_lock.entity';
 import { EventModel, IEvent } from '../entities/event.entity';
 import { Request } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
+import mongoose from 'mongoose';
 
 const time_lock = parseInt(process.env.TIME_LOCK_EVENT || '5'); //minutes
 
 export class EventLockService {
     async editable(event_id: string, req: AuthRequest): Promise<boolean> {
-        const event = await EventModel.findById(event_id);
+        const session = await mongoose.startSession();
+        session.startTransaction();
 
-        if (!event) {
-            return false;
-        }
+        try {
+            const event = await EventModel.findById(event_id).session(session);
 
-        const user_id = req?.user?.id || 0;
-        const eventLockByMe = await EventLockModel.findOne({
-            event_id,
-            user_id,
-            time_lock: { $gt: new Date(new Date().getTime() - time_lock * 60000) }
-        });
+            if (!event) {
+                await session.abortTransaction();
+                session.endSession();
+                return false;
+            }
 
-        if (eventLockByMe) {
+            const user_id = req?.user?.id || 0;
+            const eventLockByMe = await EventLockModel.findOne({
+                event_id,
+                user_id,
+                time_lock: { $gt: new Date(new Date().getTime() - time_lock * 60000) }
+            }).session(session);
+
+            if (eventLockByMe) {
+                await session.abortTransaction();
+                session.endSession();
+                return true;
+            } 
+
+            const eventLocked = await EventLockModel.findOne({
+                event_id,
+                time_lock: { $gt: new Date(new Date().getTime() - time_lock * 60000) }
+            }).session(session);
+
+            if (eventLocked) {
+                await session.abortTransaction();
+                session.endSession();
+                return false;
+            }
+
+            await session.commitTransaction();
+            session.endSession();
             return true;
-        } 
-
-        const eventLocked = await EventLockModel.findOne({
-            event_id,
-            time_lock: { $gt: new Date(new Date().getTime() - time_lock * 60000) }
-        });
-
-        if (eventLocked) {
-            return false;
-        }
-        return true;
+        } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
+            throw error;
+        }  
     }
 
     async enterEdit(event_id: string, req: AuthRequest): Promise<boolean> {
-        const editable = await this.editable(event_id, req);
-        if (!editable) return false;
+        const session = await mongoose.startSession();
+        session.startTransaction();
 
-        await EventLockModel.deleteMany({ event_id });
-        const user_id = req?.user?.id || 0;
-        const eventLock = new EventLockModel({
-            event_id: event_id,
-            user_id: user_id,
-            time_lock: new Date()
-        });
-        await eventLock.save();
+        try {
+            const editable = await this.editable(event_id, req);
+            if (!editable) {
+                await session.abortTransaction();
+                session.endSession();
+                return false
+            };
 
-        return true;
+            await EventLockModel.deleteMany({ event_id }).session(session);
+
+            const user_id = req?.user?.id || 0;
+            const eventLock = new EventLockModel({
+                event_id: event_id,
+                user_id: user_id,
+                time_lock: new Date()
+            });
+            await eventLock.save({ session });
+
+            await session.commitTransaction();
+            session.endSession();
+            return true;
+        } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
+            throw error;
+        }
     }
 
     async maintainEdit(event_id: string, req: AuthRequest): Promise<boolean> {
