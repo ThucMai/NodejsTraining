@@ -83,6 +83,7 @@ export class VoucherService {
             } catch (error) {
                 retryCount++;
                 console.log(`Retrying transaction... Attempt ${retryCount}`);
+                return false;
             } finally {
                 await session.endSession();
             }

@@ -23,7 +23,7 @@ const VoucherSchema: Schema = new Schema({
     issued_to: { type: String},
     issued_date: { type: Date, required: true },
     expired_date: { type: Date, required: true },
-    status: { type: String, default: 'Active', enum: Object.values(VoucherStatus) }
+    status: { type: String, default: VoucherStatus.ACTIVE, enum: Object.values(VoucherStatus) }
 });
 
 const VoucherModel = mongoose.model<IVoucher>('vouchers', VoucherSchema);

@@ -12,13 +12,8 @@ export class EventService {
 
     // Create event
     async createEvent(data: Partial<IEvent>): Promise<IEvent | null> {
-        try {
-            const event = new EventModel(data);
-            return await event.save();
-        } catch (error) {
-            console.log('Error create Event', error);
-            return null;
-        }
+        const event = new EventModel(data);
+        return await event.save();
     }
 
     // Edit event

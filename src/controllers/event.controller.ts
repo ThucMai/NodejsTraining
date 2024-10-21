@@ -4,23 +4,40 @@ import { EventService } from '../services/event.service';
 const eventService = new EventService();
 
 export const getEvents = async (req: Request, res: Response) => {
-    const result = await eventService.getEvents();
-    res.json(result);
+    try {
+        const result = await eventService.getEvents();
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+
 };
 
 export const getEvent = async (req: Request, res: Response) => {
-    const result = await eventService.getEvent(req.params.id);
-    res.json(result);
+    try {
+        const result = await eventService.getEvent(req.params.id);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(200).json({ message: 'Server error' });
+    }
 };
 
 export const createEvent = async (req: Request, res: Response) => {
-    const result = await eventService.createEvent(req.body);
-    res.json(result);
+    try {
+        const result = await eventService.createEvent(req.body);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
 };
 
 export const editEvent = async (req: Request, res: Response) => {
-    const result = await eventService.editEvent(req.params.id, req.body);
-    res.json(result);
+    try {
+        const result = await eventService.editEvent(req.params.id, req.body);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(200).json({ message: 'Server error' });
+    }
 }
 
 export const deleteEvent = async (req: Request, res: Response) => {

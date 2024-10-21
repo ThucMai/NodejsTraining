@@ -11,6 +11,11 @@ export interface IUser extends Document {
     status: string;
 }
 
+const UserStatus = {
+    ACTIVE: 'Active',
+    INACTIVE: 'Inactive',
+};
+
 // Create a schema for the User
 const UserSchema: Schema = new Schema({
     name: { type: String, required: true },
@@ -18,7 +23,8 @@ const UserSchema: Schema = new Schema({
     email: { type: String, required: true, unique: true },
     phone: { type: String, required: false },
     password: { type: String, required: true },
-    status: { type: String, default: 'Active' }
+    status: { type: String, default: UserStatus.ACTIVE, enum: Object.values(UserStatus) }
 });
 
-export const UserModel = mongoose.model<IUser>('users', UserSchema);
+const UserModel = mongoose.model<IUser>('users', UserSchema);
+export { UserModel, UserStatus }
