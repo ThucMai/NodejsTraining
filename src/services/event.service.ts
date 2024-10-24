@@ -1,4 +1,6 @@
 import { EventModel, IEvent, EventStatus } from '../entities/event.entity';
+import { EventLockService } from './event_lock.service';
+const eventLockService = new EventLockService();
 
 export class EventService {
     // Get events
@@ -41,6 +43,7 @@ export class EventService {
             throw error;
         } finally {
             await session.endSession();
+            await eventLockService.deleteEventLock(id, null);
         }
     }
 

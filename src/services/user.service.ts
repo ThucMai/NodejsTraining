@@ -57,7 +57,7 @@ export class UserService {
 
     // Get a user by ID
     async getById(id: string): Promise<IUser | null> {
-        return await UserModel.findOne({ id, status: UserStatus.ACTIVE });
+        return await UserModel.findOne({ _id: id, status: UserStatus.ACTIVE });
     }
 
     // Create a new user

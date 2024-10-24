@@ -104,4 +104,18 @@ export class EventLockService {
         );
         return result ? true : false;
     }
+
+    async deleteEventLock(event_id: String, user_id: string | null): Promise<boolean> {
+        try {
+            const query: any = { event_id };
+            if (user_id) {
+                query.user_id = user_id;
+            }
+            await EventLockModel.findOneAndDelete(query);
+            return true;
+        } catch (error) {
+            console.error('Delete event lock fail with error: ', error);
+            return false;
+        }
+    }
 }

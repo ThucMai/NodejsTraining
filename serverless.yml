@@ -1,0 +1,26 @@
+service: my-serverless
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+
+functions:
+  main:
+    handler: serverless/serverless_handler.handler
+    memorySize: 512
+    timeout: 30
+    events:
+      - http:
+          method: ANY
+          path: /
+      - http:
+          method: ANY
+          path: '{proxy+}'
+
+plugins:
+  - serverless-offline
+
+# Optional: Configuration for serverless-offline plugin
+custom:
+  serverless-offline:
+    port: 3001
