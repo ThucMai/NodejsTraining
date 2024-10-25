@@ -3,6 +3,11 @@ import connectDB from './database';
 import dotenv from 'dotenv';
 import router from './routes/index';
 import {startAgendaJobs} from './database_health'
+import { graphqlHTTP } from 'express-graphql';
+import { buildSchema } from 'graphql';
+import { schema } from './graphql/schema';
+import { index_schema } from './graphql/index.schema';
+import { Query } from 'mongoose';
 
 class App {
     public app: Application;
@@ -14,13 +19,29 @@ class App {
         this.port = process.env.PORT || 3000;
 
         this.connectDatabase();
-        this.checkDatabaseHealth();
+        if (process.env.DB != 'mysql') {
+            this.checkDatabaseHealth();
+        } else {
+            this.graphQLSetup();
+        }
         this.middlewares();
         this.routes();
     }
 
     private connectDatabase(): void {
         connectDB();
+    }
+
+    private graphQLSetup(): void {
+        const root = {
+        hello: () => 'Hello world!',
+        };
+    
+        this.app.use('/graphql', graphqlHTTP({
+        schema: index_schema,
+        rootValue: root,
+        graphiql: true,
+        }));
     }
 
     private checkDatabaseHealth(): void {
