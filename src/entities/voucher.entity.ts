@@ -1,20 +1,17 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { ItemStatus, Deleted } from '../utils/variable';
 
 // Create an interface for the User
 export interface IVoucher extends Document {
     event_id: String;
     event: Object;
-    voucher_code: String;
-    issued_to: String;
+    voucher_code: string;
+    issued_to: string;
     issued_date: Date;
     expired_date: Date;
     status: String;
+    [Deleted] : Boolean;
 }
-
-const VoucherStatus = {
-    ACTIVE: 'Active',
-    INACTIVE: 'Inactive',
-};
 
 const VoucherSchema: Schema = new Schema({
     event_id: { type: String, required: true },
@@ -23,9 +20,10 @@ const VoucherSchema: Schema = new Schema({
     issued_to: { type: String},
     issued_date: { type: Date, required: true },
     expired_date: { type: Date, required: true },
-    status: { type: String, default: VoucherStatus.ACTIVE, enum: Object.values(VoucherStatus) }
+    status: { type: String, default: ItemStatus.Active, enum: Object.values(ItemStatus) },
+    [Deleted]: { type: Boolean }
 });
 
 const VoucherModel = mongoose.model<IVoucher>('vouchers', VoucherSchema);
 
-export { VoucherModel, VoucherStatus }
+export { VoucherModel }

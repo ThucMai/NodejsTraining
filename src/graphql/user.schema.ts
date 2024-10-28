@@ -2,6 +2,7 @@
 import { GraphQLObjectType, GraphQLSchema, GraphQLID, GraphQLString, GraphQLList } from 'graphql';
 import { getRepository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
+import { AvailableItem, Deleted } from '../utils/variable';
 
 // Define UserType
 export const UserType = new GraphQLObjectType({
@@ -22,7 +23,7 @@ const user = {
   args: { id: { type: GraphQLID } },
   resolve: async (_parent: unknown, args: { id: number }) => {
     const userRepository = getRepository(UserEntity);
-    return await userRepository.findOne({ where: { id: args.id }});
+    return await userRepository.findOne({ where: { id: args.id, ...AvailableItem }});
   }
 };
 
@@ -30,7 +31,7 @@ const users = {
   type: new GraphQLList(UserType), // Return a list of UserType
   resolve: async () => {
     const userRepository = getRepository(UserEntity);
-    return await userRepository.find();  // Fetch all users
+    return await userRepository.find({ where: AvailableItem });
   }
 };
 
@@ -77,7 +78,7 @@ const updateUser = {
     phone: string, password: string, status: string
   }) => {
     const userRepository = getRepository(UserEntity);
-    const user = await userRepository.findOne({ where: {id: args.id}});
+    const user = await userRepository.findOne({ where: {id: args.id, ...AvailableItem}});
     if (!user) throw new Error('User not found');
     
     user.name = args.name || user.name;
@@ -100,7 +101,7 @@ const deleteUser = {
     const user = await userRepository.findOne({ where: {id: args.id}});
     if (!user) throw new Error('User not found');
     
-    user.status = 'Inactive';
+    user[Deleted] = true;
     return await userRepository.save(user);
   }
 }

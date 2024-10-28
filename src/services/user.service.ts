@@ -1,6 +1,7 @@
 // Create Service
 import { create } from 'domain';
-import { UserModel, IUser, UserStatus } from '../entities/user.entity';
+import { UserModel, IUser } from '../entities/user.entity';
+import { ItemStatus, ActiveItem, AvailableItem, Deleted } from '../utils/variable';
 import jwt from 'jsonwebtoken';
 
 const bcrypt = require('bcrypt');
@@ -20,7 +21,7 @@ const hashPassword = async (password: string) => {
 export class UserService {
     async login(data: Partial<IUser>) {
         const { username, password } = data;
-        const user = await UserModel.findOne({ username, status: UserStatus.ACTIVE });
+        const user = await UserModel.findOne({ username, ...ActiveItem, ...AvailableItem });
 
         if (!user) {
             return { success: false, message: 'Invalid username or password' }
@@ -52,12 +53,12 @@ export class UserService {
 
     // Get all users
     async getAll(): Promise<IUser[]> {
-        return await UserModel.find({ status: UserStatus.ACTIVE });
+        return await UserModel.find({ [Deleted]: false });
     }
 
     // Get a user by ID
     async getById(id: string): Promise<IUser | null> {
-        return await UserModel.findOne({ _id: id, status: UserStatus.ACTIVE });
+        return await UserModel.findOne({ _id: id, ...AvailableItem });
     }
 
     // Create a new user
@@ -70,12 +71,12 @@ export class UserService {
 
     // Update a user by ID
     async updateUser(id: string, data: Partial<IUser>): Promise<IUser | null> {
-        return await UserModel.findByIdAndUpdate({ id, status: UserStatus.ACTIVE }, data, { new: true });
+        return await UserModel.findByIdAndUpdate({ id, ...AvailableItem, ...ActiveItem }, data, { new: true });
     }
 
     // Delete a user by ID
     async deleteUser(id: string): Promise<IUser | boolean> {
-        const result = await UserModel.findByIdAndUpdate(id, {status: UserStatus.INACTIVE});
+        const result = await UserModel.findByIdAndUpdate(id, {[Deleted]: true});
         return result ? true: false;
     }
 }

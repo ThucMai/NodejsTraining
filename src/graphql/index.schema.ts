@@ -1,12 +1,13 @@
 import { GraphQLSchema, GraphQLObjectType } from 'graphql';
 import { userQuery, userMutation } from "./user.schema";
+import { eventQuery, eventMutation } from './event.schema';
 
 // Define Root Query
 const RootQuery = new GraphQLObjectType({
   name: 'Query',
   fields: {
     ...userQuery,
-    // voucher: voucherQuery,
+    ...eventQuery,
   },
 });
 
@@ -15,7 +16,7 @@ const Mutation = new GraphQLObjectType({
   name: 'Mutation',
   fields: {
     ...userMutation,
-    // ...voucherMutations,
+    ...eventMutation,
   },
 });
 

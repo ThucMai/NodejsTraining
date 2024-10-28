@@ -1,15 +1,16 @@
-import { EventModel, IEvent, EventStatus } from '../entities/event.entity';
+import { EventModel, IEvent } from '../entities/event.entity';
 import { EventLockService } from './event_lock.service';
+import { Deleted, ItemStatus, ActiveItem, AvailableItem } from '../utils/variable';
 const eventLockService = new EventLockService();
 
 export class EventService {
     // Get events
     async getEvents(): Promise<IEvent[]> {
-        return await EventModel.find({ status: EventStatus.ACTIVE });
+        return await EventModel.find({ ...AvailableItem });
     }
 
     async getEvent(id: String): Promise<IEvent | null> {
-        return await EventModel.findOne({ _id: id, status: EventStatus.ACTIVE });
+        return await EventModel.findOne({ _id: id, ...AvailableItem });
     }
 
     // Create event
@@ -24,8 +25,8 @@ export class EventService {
         session.startTransaction();
 
         try {
-            const event = await EventModel.findById(id);
-            if (!event || event.status == EventStatus.INACTIVE) {
+            const event = await this.getEvent(id);
+            if (!event || event.status == ItemStatus.Inactive ) {
                 await session.abortTransaction();
                 return false;
             }
@@ -49,7 +50,7 @@ export class EventService {
 
     // Delete event
     async deleteEvent(id: String) {
-        await EventModel.findByIdAndUpdate(id, { status: EventStatus.INACTIVE });
-        return true
+        const result = await EventModel.findByIdAndUpdate(id, { [Deleted]: true });
+        return result ? true: false;
     }
 }

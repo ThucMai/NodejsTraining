@@ -16,7 +16,7 @@ const connectDB = async () => {
                 username: process.env.MYSQL_USER,
                 password: process.env.MYSQL_PASSWORD,
                 database: process.env.MYSQL_DATABASE,
-                synchronize: false,  // Set to false to prevent TypeORM from trying to create tables
+                synchronize: true,  // Set to false to prevent TypeORM from trying to create tables
                 entities: ['./dist/graphql/entities/*.js'],
             });
             console.log('MySql connected');

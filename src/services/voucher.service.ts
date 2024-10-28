@@ -1,15 +1,17 @@
-import { VoucherModel, IVoucher, VoucherStatus } from '../entities/voucher.entity';
+import { VoucherModel, IVoucher } from '../entities/voucher.entity';
 import { EventService } from './event.service';
 import EmailQueue from '../queues/sendmail';
 import { EventModel } from '../entities/event.entity';
+import { generateVoucherCode } from '../utils/function';
+import { ItemStatus, Deleted, AvailableItem, ActiveItem } from '../utils/variable';
 
 export class VoucherService {
     // Get Vouchers
     async getVouchers(id: string | null): Promise<IVoucher[]> {
         if (!id) {
-            return await VoucherModel.find({ status: VoucherStatus.ACTIVE });
+            return await VoucherModel.find(AvailableItem);
         }
-        return await VoucherModel.find({ '_id': id });
+        return await VoucherModel.find({ '_id': id, ...AvailableItem });
     }
 
     // Create Voucher
@@ -29,9 +31,9 @@ export class VoucherService {
                 const eventService = new EventService();
                 const event = await eventService.getEvent(data.event_id);
 
-                if (!event || event.voucher_quantity < event.voucher_released) {
+                if (!event || event.status == ItemStatus.Inactive) {
                     await session.abortTransaction();
-                    return 'Cannot find event';
+                    return 'Cannot find event or event inactive';
                 }
 
                 // Check if the event has ended or all vouchers have been released
@@ -41,14 +43,14 @@ export class VoucherService {
                 }
                 let voucher_code = data.voucher_code ?? '';
                 if (voucher_code) {
-                    const isCodeExist = await VoucherModel.findOne({ voucher_code });
+                    const isCodeExist = await VoucherModel.findOne({ voucher_code, ...AvailableItem });
                     if (isCodeExist) {
                         await session.abortTransaction();
                         return false;
                     }
                 } else {
                     voucher_code = generateVoucherCode(7);
-                    while (await VoucherModel.findOne({ voucher_code })) {
+                    while (await VoucherModel.findOne({ voucher_code: voucher_code, ...AvailableItem })) {
                         voucher_code = generateVoucherCode(7);
                     }
                 }
@@ -93,23 +95,37 @@ export class VoucherService {
 
     // Edit Voucher
     async editVoucher(id: string, data: Partial<IVoucher>): Promise<IVoucher | null> {
-        return await VoucherModel.findOneAndUpdate({ id, status: VoucherStatus.ACTIVE }, data, { new: true });
+        const voucherUpdate = await VoucherModel.findOne({ id, ...AvailableItem });
+        if (!voucherUpdate) {
+            return null;
+        }
+        let voucherCode = '';
+        if (!data.voucher_code) { //create new voucher code
+            voucherCode = voucherUpdate.voucher_code;
+        } else { //check the code submit
+            const isExist = await VoucherModel.findOne({ 
+                _id: { $ne: id }, 
+                voucher_code: data.voucher_code,
+                ...ActiveItem
+            });
+            if (isExist) {
+                return null;
+            }
+            voucherCode = data.voucher_code;
+        }
+        const dataUpdate = {
+            event_id: data.event_id ?? voucherUpdate.event_id,
+            event: data.event ?? voucherUpdate.event,
+            voucher_code: voucherCode,
+            issued_to: data.issued_to ?? voucherUpdate.issued_to,
+            issued_date: data.issued_date ?? voucherUpdate.issued_date,
+            expired_date: data.expired_date ?? voucherUpdate.expired_date
+        }
+        return await VoucherModel.findOneAndUpdate({ id }, data, { new: true });
     }
 
     // Delete Voucher
     async deleteVoucher(id: string) {
-        return await VoucherModel.findByIdAndUpdate(id, {'status': VoucherStatus.INACTIVE});;
+        return await VoucherModel.findByIdAndUpdate(id, { [Deleted]: true} );
     }
-}
-
-function generateVoucherCode(length: number): string {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    const charactersLength = characters.length;
-
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-
-    return result;
 }

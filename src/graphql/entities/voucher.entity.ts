@@ -1,22 +1,20 @@
 import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
 import { Deleted } from "../../utils/variable";
 
-@Entity('user')
-export class UserEntity {
+@Entity('voucher')
+export class VoucherEntity {
   @PrimaryGeneratedColumn()
   id!: number;
   @Column()
-  name!: string;
+  event_id!: Number;
   @Column()
-  username!: string;
+  voucher_code!: string;
   @Column()
-  email!: string;
+  issued_to!: String;
+  @Column() 
+  issue_date!: Date;
   @Column()
-  phone!: string;
-  @Column()
-  password!: string;
-  @Column()
-  status!: string;
+  status!: String;
   @Column()
   [Deleted]!: Boolean;
 }
