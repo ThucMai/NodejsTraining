@@ -1,7 +1,7 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { MockMongoose } from 'mock-mongoose';
-import Redis from 'ioredis-mock';
+// import Redis from 'ioredis-mock';
 import { EventLockService } from '../services/event_lock.service';
 import { EventLockModel } from '../entities/event_lock.entity';
 import { AuthRequest } from '../middleware/auth.middleware';

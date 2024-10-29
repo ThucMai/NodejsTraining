@@ -3,14 +3,14 @@ import { ItemStatus, Deleted } from '../utils/variable';
 
 // Create an interface for the User
 export interface IEvent extends Document {
-    event_name: String;
+    event_name: string;
     description: Text;
     event_date_start: Date;
     event_date_end: Date;
-    voucher_quantity: Number;
-    voucher_released: Number;
-    status: String;
-    [Deleted] : Boolean;
+    voucher_quantity: number;
+    voucher_released: number;
+    status: string;
+    [Deleted] : boolean;
 }
 
 const EventSchema: Schema = new Schema({

@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
-import { Deleted } from "../../utils/variable";
+import { Deleted, ItemStatus } from "../../utils/variable";
 
-@Entity('user')
+@Entity('users')
 export class UserEntity {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -15,8 +15,19 @@ export class UserEntity {
   phone!: string;
   @Column()
   password!: string;
-  @Column()
+  @Column({ default: ItemStatus.Active })
   status!: string;
   @Column()
-  [Deleted]!: Boolean;
+  [Deleted]!: boolean;
+}
+
+export interface IUser extends Document {
+  id: Number;
+  name: String;
+  username: String;
+  email: String;
+  phone: String;
+  password: String;
+  status: String;
+  [Deleted] : Boolean;
 }

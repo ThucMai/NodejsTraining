@@ -2,9 +2,9 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 // Create an interface for the User
 export interface IEventLock extends Document {
-    event_id: String;
-    user_id: String;
-    status: String;
+    event_id: string;
+    user_id: string;
+    status: string;
     time_lock: Date;
 }
 

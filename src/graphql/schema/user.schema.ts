@@ -1,26 +1,31 @@
 // schema.ts
 import { GraphQLObjectType, GraphQLSchema, GraphQLID, GraphQLString, GraphQLList } from 'graphql';
 import { getRepository } from 'typeorm';
-import { UserEntity } from './entities/user.entity';
-import { AvailableItem, Deleted } from '../utils/variable';
+import { UserEntity } from '../entities/user.entity';
+import { AvailableItem, Deleted } from '../../utils/variable';
+import { createUserRule, updateUserRule } from '../validate/user.validate';
+
+const IDField = {
+  id: { type: GraphQLID },
+}
+const UserFields = {
+  name: { type: GraphQLString },
+  username: { type: GraphQLString },
+  phone: { type: GraphQLString },
+  email: { type: GraphQLString },
+  password: { type: GraphQLString },
+  status: { type: GraphQLString }
+};
 
 // Define UserType
 export const UserType = new GraphQLObjectType({
   name: 'user',
-  fields: () => ({
-    id: { type: GraphQLID },
-    name: { type: GraphQLString },
-    username: { type: GraphQLString },
-    phone: { type: GraphQLString },
-    email: { type: GraphQLString },
-    password: { type: GraphQLString },
-    status: { type: GraphQLString }
-  })
+  fields: () => ({...IDField, ...UserFields})
 });
 
 const user = {
   type: UserType,
-  args: { id: { type: GraphQLID } },
+  args: IDField,
   resolve: async (_parent: unknown, args: { id: number }) => {
     const userRepository = getRepository(UserEntity);
     return await userRepository.findOne({ where: { id: args.id, ...AvailableItem }});
@@ -40,19 +45,16 @@ export const userQuery = {user, users};
 
 const addUser = {
   type: UserType,
-  args: {
-    id: { type: GraphQLID },
-    name: { type: GraphQLString },
-    username: { type: GraphQLString },
-    email: { type: GraphQLString },
-    phone: { type: GraphQLString },
-    password: { type: GraphQLString },
-    status: { type: GraphQLString }
-  },
+  args: UserFields,
   resolve: async (_parent: unknown, args: {
     name: string, username: string, email: string,
     phone: string, password: string, status: string
   }) => {
+    const { error } = createUserRule(args);
+    if (error) {
+      throw new Error(`Validation error: ${error.details.map(detail => detail.message).join(', ')}`);
+    }
+
     const userRepository = getRepository(UserEntity);
     const newUser = userRepository.create({
       name: args.name, username: args.username, email: args.email,
@@ -64,19 +66,16 @@ const addUser = {
 
 const updateUser = {
   type: UserType,
-  args: {
-    id: { type: GraphQLID },
-    name: { type: GraphQLString },
-    username: { type: GraphQLString },
-    email: { type: GraphQLString },
-    phone: { type: GraphQLString },
-    password: { type: GraphQLString },
-    status: { type: GraphQLString }
-  },
+  args: { ...IDField, ...UserFields },
   resolve: async (_parent: unknown, args: {
     id: number, name: string, username: string, email: string,
     phone: string, password: string, status: string
   }) => {
+    const { error } = updateUserRule(args);
+    if (error) {
+      throw new Error(`Validation error: ${error.details.map(detail => detail.message).join(', ')}`);
+    }
+
     const userRepository = getRepository(UserEntity);
     const user = await userRepository.findOne({ where: {id: args.id, ...AvailableItem}});
     if (!user) throw new Error('User not found');
@@ -93,9 +92,7 @@ const updateUser = {
 
 const deleteUser = {
   type: UserType,
-  args: {
-    id: { type: GraphQLID }
-  },
+  args: IDField,
   resolve: async (_parent: unknown, args: {id: number}) => {
     const userRepository = getRepository(UserEntity);
     const user = await userRepository.findOne({ where: {id: args.id}});

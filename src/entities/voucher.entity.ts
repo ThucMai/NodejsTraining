@@ -4,13 +4,13 @@ import { ItemStatus, Deleted } from '../utils/variable';
 // Create an interface for the User
 export interface IVoucher extends Document {
     event_id: String;
-    event: Object;
+    event: object;
     voucher_code: string;
     issued_to: string;
     issued_date: Date;
     expired_date: Date;
-    status: String;
-    [Deleted] : Boolean;
+    status: string;
+    [Deleted] : boolean;
 }
 
 const VoucherSchema: Schema = new Schema({

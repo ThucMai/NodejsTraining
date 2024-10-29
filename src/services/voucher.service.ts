@@ -100,7 +100,7 @@ export class VoucherService {
             return null;
         }
         let voucherCode = '';
-        if (!data.voucher_code) { //create new voucher code
+        if (!data.voucher_code) {
             voucherCode = voucherUpdate.voucher_code;
         } else { //check the code submit
             const isExist = await VoucherModel.findOne({ 
@@ -121,7 +121,7 @@ export class VoucherService {
             issued_date: data.issued_date ?? voucherUpdate.issued_date,
             expired_date: data.expired_date ?? voucherUpdate.expired_date
         }
-        return await VoucherModel.findOneAndUpdate({ id }, data, { new: true });
+        return await VoucherModel.findOneAndUpdate({ id }, dataUpdate, { new: true });
     }
 
     // Delete Voucher

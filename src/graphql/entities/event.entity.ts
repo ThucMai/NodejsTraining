@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
-import { Deleted } from "../../utils/variable";
+import { Deleted, ItemStatus } from "../../utils/variable";
 
-@Entity('event')
+@Entity('events')
 export class EventEntity {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -14,11 +14,22 @@ export class EventEntity {
   @Column()
   event_date_end!: Date;
   @Column()
-  voucher_quantity!: string;
+  voucher_quantity!: number;
   @Column()
-  voucher_released!: string;
-  @Column()
+  voucher_released!: number;
+  @Column({ default: ItemStatus.Active })
   status!: string;
   @Column()
-  [Deleted]!: Boolean;
+  [Deleted]!: boolean;
+}
+export interface IEvent extends Document {
+  id: Number;
+  event_name: String;
+  description: String;
+  event_date_start: Date;
+  event_date_end: Date;
+  voucher_quantity: Number;
+  voucher_released: Number;
+  status: String;
+  [Deleted] : Boolean;
 }

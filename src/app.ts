@@ -5,8 +5,7 @@ import router from './routes/index';
 import {startAgendaJobs} from './database_health'
 import { graphqlHTTP } from 'express-graphql';
 import { buildSchema } from 'graphql';
-import { schema } from './graphql/schema';
-import { index_schema } from './graphql/index.schema';
+import { index_schema } from './graphql/schema/index.schema';
 import { Query } from 'mongoose';
 
 class App {

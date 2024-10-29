@@ -1,28 +1,33 @@
 import { GraphQLObjectType, GraphQLSchema, GraphQLID, GraphQLString, GraphQLList, GraphQLBoolean } from 'graphql';
 import { getRepository } from 'typeorm';
-import { EventEntity } from './entities/event.entity';
-import { ItemStatus, AvailableItem, ActiveItem, Deleted } from '../utils/variable';
+import { EventEntity } from '../entities/event.entity';
+import { ItemStatus, AvailableItem, ActiveItem, Deleted } from '../../utils/variable';
+import { createEventRule, updateEventRule } from '../validate/event.validate';
 import { GraphQLDateTime } from 'graphql-scalars';
+
+const IDField = {
+  id: { type: GraphQLID }
+};
+
+const EventFields = {
+  event_name: { type: GraphQLString },
+  description: { type: GraphQLString },
+  event_date_start: { type: GraphQLDateTime },
+  event_date_end: { type: GraphQLDateTime },
+  voucher_quantity: { type: GraphQLString },
+  voucher_released: { type: GraphQLString },
+  status: { type: GraphQLString },
+}
 
 // Define EventType
 export const EventType = new GraphQLObjectType({
   name: 'event',
-  fields: () => ({
-    id: { type: GraphQLID },
-    event_name: { type: GraphQLString },
-    description: { type: GraphQLString },
-    event_date_start: { type: GraphQLDateTime },
-    event_date_end: { type: GraphQLDateTime },
-    voucher_quantity: { type: GraphQLString },
-    voucher_released: { type: GraphQLString },
-    status: { type: GraphQLString },
-    // [Deleted]: { type: GraphQLBoolean }
-  })
+  fields: () => ({...IDField, ...EventFields})
 });
 
 const event = {
   type: EventType,
-  args: { id: { type: GraphQLID } },
+  args: IDField,
   resolve: async (_parent: unknown, args: { id: number }) => {
     const eventRepository = getRepository(EventEntity);
     return await eventRepository.findOne({ where: { id: args.id, ...AvailableItem }});
@@ -42,20 +47,16 @@ export const eventQuery = { event, events };
 
 const addEvent = {
   type: EventType,
-  args: {
-    id: { type: GraphQLID },
-    event_name: { type: GraphQLString },
-    description: { type: GraphQLString },
-    event_date_start: { type: GraphQLDateTime },
-    event_date_end: { type: GraphQLDateTime },
-    voucher_quantity: { type: GraphQLString },
-    voucher_released: { type: GraphQLString },
-    status: { type: GraphQLString }
-  },
+  args: EventFields,
   resolve: async (_parent: unknown, args: {
     event_name: string, description: string, event_date_start: Date,
-    event_date_end: Date, voucher_quantity: string, voucher_released: string, status: string
+    event_date_end: Date, voucher_quantity: number, voucher_released: number, status: string
   }) => {
+    const { error } = createEventRule(args);
+    if (error) {
+      throw new Error(`Validation error: ${error.details.map(detail => detail.message).join(', ')}`);
+    }
+
     const eventRepository = getRepository(EventEntity);
     const newEvent = eventRepository.create({
       event_name: args.event_name, description: args.description, event_date_start: args.event_date_start,
@@ -68,20 +69,16 @@ const addEvent = {
 
 const updateEvent = {
   type: EventType,
-  args: {
-    id: { type: GraphQLID },
-    event_name: { type: GraphQLString },
-    description: { type: GraphQLString },
-    event_date_start: { type: GraphQLDateTime },
-    event_date_end: { type: GraphQLDateTime },
-    voucher_quantity: { type: GraphQLString },
-    voucher_released: { type: GraphQLString },
-    status: { type: GraphQLString }
-  },
+  args: {...IDField, ...EventFields},
   resolve: async (_parent: unknown, args: {
     id: number, event_name: string, description: string, event_date_start: Date,
-    event_date_end: Date, voucher_quantity: string, voucher_released: string, status: string
+    event_date_end: Date, voucher_quantity: number, voucher_released: number, status: string
   }) => {
+    const { error } = updateEventRule(args);
+    if (error) {
+      throw new Error(`Validation error: ${error.details.map(detail => detail.message).join(', ')}`);
+    }
+
     const eventRepository = getRepository(EventEntity);
     const event = await eventRepository.findOne({ where: {id: args.id, ...ActiveItem, ...AvailableItem}});
     if (!event) throw new Error('User not found');
@@ -99,9 +96,7 @@ const updateEvent = {
 
 const deleteEvent = {
   type: EventType,
-  args: {
-    id: { type: GraphQLID }
-  },
+  args: IDField,
   resolve: async (_parent: unknown, args: {id: number}) => {
     const eventRepository = getRepository(EventEntity);
     const event = await eventRepository.findOne({ where: {id: args.id}});

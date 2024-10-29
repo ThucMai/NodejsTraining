@@ -9,7 +9,7 @@ export interface IUser extends Document {
     phone: string;
     password: string;
     status: string;
-    [Deleted] : Boolean;
+    [Deleted] : boolean;
 }
 
 // Create a schema for the User

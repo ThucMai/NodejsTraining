@@ -1,5 +1,5 @@
 import { Request, Response,NextFunction } from 'express';
-import { VoucherStatus } from '../entities/voucher.entity'
+import { ItemStatus } from '../utils/variable';
 import Joi from 'joi';
 
 export const createVoucherRule = (req: Request, res: Response, next: NextFunction) => {
@@ -10,7 +10,7 @@ export const createVoucherRule = (req: Request, res: Response, next: NextFunctio
         issued_to: Joi.string().email().required(),
         issued_date: Joi.date().optional(),
         expired_date: Joi.date().optional(),
-        status: Joi.string().optional().valid(VoucherStatus.ACTIVE, VoucherStatus.INACTIVE)
+        status: Joi.string().optional().valid(ItemStatus.Active, ItemStatus.Inactive)
     });
     return validateEvent(schema)(req, res, next);
 }
@@ -23,7 +23,7 @@ export const updateVoucherRule = (req: Request, res: Response, next: NextFunctio
         event_date_end: Joi.date().optional(),
         voucher_quantity: Joi.number().optional(),
         voucher_released: Joi.number().optional(),
-        status: Joi.string().valid(VoucherStatus.ACTIVE, VoucherStatus.INACTIVE).optional()
+        status: Joi.string().valid(ItemStatus.Active, ItemStatus.Inactive).optional()
     });
     return validateEvent(schema)(req, res, next);
 }
