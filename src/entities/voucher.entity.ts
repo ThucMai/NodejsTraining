@@ -3,7 +3,7 @@ import { ItemStatus, Deleted } from '../utils/variable';
 
 // Create an interface for the User
 export interface IVoucher extends Document {
-    event_id: String;
+    event_id: string;
     event: object;
     voucher_code: string;
     issued_to: string;

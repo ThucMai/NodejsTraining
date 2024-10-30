@@ -24,12 +24,8 @@ export class VoucherService {
             session.startTransaction();
         
             try {
-                if (!data.event_id) {
-                    await session.abortTransaction();
-                    return 'Cannot find event';
-                }
                 const eventService = new EventService();
-                const event = await eventService.getEvent(data.event_id);
+                const event = await eventService.getEvent(data.event_id!);
 
                 if (!event || event.status == ItemStatus.Inactive) {
                     await session.abortTransaction();
@@ -74,10 +70,10 @@ export class VoucherService {
 
                 // Push email to queue
                 EmailQueue.add({
-                    to: data.issued_to,
+                    to: savedVoucher.issued_to,
                     subject: 'Voucher code for you!',
                     text: `This is your voucher code: ${voucher_code}, 
-                        You can use this voucher to ${data.expired_date}`
+                        You can use this voucher to ${savedVoucher.expired_date}`
                 });
 
                 await session.commitTransaction();
@@ -121,11 +117,11 @@ export class VoucherService {
             issued_date: data.issued_date ?? voucherUpdate.issued_date,
             expired_date: data.expired_date ?? voucherUpdate.expired_date
         }
-        return await VoucherModel.findOneAndUpdate({ id }, dataUpdate, { new: true });
+        return await VoucherModel.findOneAndUpdate({ id }, dataUpdate, {new: true});
     }
 
     // Delete Voucher
     async deleteVoucher(id: string) {
-        return await VoucherModel.findByIdAndUpdate(id, { [Deleted]: true} );
+        return await VoucherModel.findByIdAndUpdate(id, {[Deleted]: true});
     }
 }

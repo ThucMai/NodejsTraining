@@ -4,6 +4,7 @@ import { getRepository } from 'typeorm';
 import { UserEntity } from '../entities/user.entity';
 import { AvailableItem, Deleted } from '../../utils/variable';
 import { createUserRule, updateUserRule } from '../validate/user.validate';
+import { hashPassword } from '../../utils/function';
 
 const IDField = {
   id: { type: GraphQLID },
@@ -56,9 +57,10 @@ const addUser = {
     }
 
     const userRepository = getRepository(UserEntity);
+    const pass = await hashPassword(args.password);
     const newUser = userRepository.create({
       name: args.name, username: args.username, email: args.email,
-      phone: args.phone, password: args.password, status: args.status
+      phone: args.phone, password: pass
     });
     return await userRepository.save(newUser);
   }
@@ -80,12 +82,12 @@ const updateUser = {
     const user = await userRepository.findOne({ where: {id: args.id, ...AvailableItem}});
     if (!user) throw new Error('User not found');
     
-    user.name = args.name || user.name;
-    user.username = args.name || user.username;
-    user.email = args.email || user.email;
-    user.phone = args.phone || user.phone;
-    user.password = args.password || user.password;
-    user.status = args.status || user.status;
+    user.name = args.name ?? user.name;
+    user.username = args.name ?? user.username;
+    user.email = args.email ?? user.email;
+    user.phone = args.phone ?? user.phone;
+    user.password = args.password ? await hashPassword(args.password) : user.password;
+    user.status = args.status ?? user.status;
     return await userRepository.save(user);
   }
 };
@@ -94,12 +96,8 @@ const deleteUser = {
   type: UserType,
   args: IDField,
   resolve: async (_parent: unknown, args: {id: number}) => {
-    const userRepository = getRepository(UserEntity);
-    const user = await userRepository.findOne({ where: {id: args.id}});
-    if (!user) throw new Error('User not found');
-    
-    user[Deleted] = true;
-    return await userRepository.save(user);
+    const userRepository = getRepository(UserEntity);    
+    return await userRepository.update(args.id, {[Deleted]: true});
   }
 }
 

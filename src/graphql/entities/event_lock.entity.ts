@@ -2,7 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
 import { Deleted, ItemStatus } from "../../utils/variable";
 
 @Entity('events')
-export class EventEntity {
+export class EventLockEntity {
   @PrimaryGeneratedColumn()
   id!: number;
   @Column()

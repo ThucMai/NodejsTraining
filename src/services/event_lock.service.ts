@@ -95,8 +95,7 @@ export class EventLockService {
         const result = await EventLockModel.findOneAndUpdate(
             {
                 event_id,
-                user_id,
-                time_lock: { $gt: new Date(new Date().getTime() - time_lock * 60000) }
+                user_id
             },
             {
                 time_lock: new Date()

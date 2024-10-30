@@ -3,20 +3,10 @@ import { create } from 'domain';
 import { UserModel, IUser } from '../entities/user.entity';
 import { ItemStatus, ActiveItem, AvailableItem, Deleted } from '../utils/variable';
 import jwt from 'jsonwebtoken';
-
+import { hashPassword } from '../utils/function';
 const bcrypt = require('bcrypt');
 const jwtSecret = process.env.JWT_SECRET || '';
 const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '1h';
-const hashPassword = async (password: string) => {
-    try {
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-        return hashedPassword;
-    } catch (error) {
-        console.error('Error hashing password:', error);
-        throw error;
-    }
-};
 
 export class UserService {
     async login(data: Partial<IUser>) {
@@ -71,6 +61,9 @@ export class UserService {
 
     // Update a user by ID
     async updateUser(id: string, data: Partial<IUser>): Promise<IUser | null> {
+        if (data.password) {
+            data.password = await hashPassword(data.password);
+        }
         return await UserModel.findByIdAndUpdate({ id, ...AvailableItem, ...ActiveItem }, data, { new: true });
     }
 

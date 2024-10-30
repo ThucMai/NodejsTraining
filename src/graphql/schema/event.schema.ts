@@ -1,5 +1,5 @@
 import { GraphQLObjectType, GraphQLSchema, GraphQLID, GraphQLString, GraphQLList, GraphQLBoolean } from 'graphql';
-import { getRepository } from 'typeorm';
+import { getManager, getRepository } from 'typeorm';
 import { EventEntity } from '../entities/event.entity';
 import { ItemStatus, AvailableItem, ActiveItem, Deleted } from '../../utils/variable';
 import { createEventRule, updateEventRule } from '../validate/event.validate';
@@ -59,9 +59,13 @@ const addEvent = {
 
     const eventRepository = getRepository(EventEntity);
     const newEvent = eventRepository.create({
-      event_name: args.event_name, description: args.description, event_date_start: args.event_date_start,
-      event_date_end: args.event_date_end, voucher_quantity: args.voucher_quantity,
-      voucher_released: args.voucher_released, status: args.status
+      event_name: args.event_name,
+      description: args.description,
+      event_date_start: args.event_date_start,
+      event_date_end: args.event_date_end,
+      voucher_quantity: args.voucher_quantity,
+      voucher_released: args.voucher_released,
+      status: args.status
     });
     return await eventRepository.save(newEvent);
   }
@@ -78,19 +82,25 @@ const updateEvent = {
     if (error) {
       throw new Error(`Validation error: ${error.details.map(detail => detail.message).join(', ')}`);
     }
+    try {
+      return await getManager().transaction(async transactionalEntityManager => {
+        const eventRepository = transactionalEntityManager.getRepository(EventEntity);
 
-    const eventRepository = getRepository(EventEntity);
-    const event = await eventRepository.findOne({ where: {id: args.id, ...ActiveItem, ...AvailableItem}});
-    if (!event) throw new Error('User not found');
+        const event = await eventRepository.findOne({ where: {id: args.id, ...AvailableItem}});
+        if (!event) throw new Error('Event not found');
 
-    event.event_name = args.event_name || event.event_name;
-    event.description = args.description || event.description;
-    event.event_date_start = args.event_date_start || event.event_date_start;
-    event.event_date_end = args.event_date_end || event.event_date_end;
-    event.voucher_quantity = args.voucher_quantity || event.voucher_quantity;
-    event.voucher_released = args.voucher_released || event.voucher_released;
-    event.status = args.status || event.status;
-    return await eventRepository.save(event);
+        event.event_name = args.event_name || event.event_name;
+        event.description = args.description || event.description;
+        event.event_date_start = args.event_date_start || event.event_date_start;
+        event.event_date_end = args.event_date_end || event.event_date_end;
+        event.voucher_quantity = args.voucher_quantity || event.voucher_quantity;
+        event.voucher_released = args.voucher_released || event.voucher_released;
+        event.status = args.status || event.status;
+        return await eventRepository.save(event);
+      })
+    } catch (error) {
+      console.log(`Error: ${error}`);
+    }
   }
 };
 
@@ -99,11 +109,7 @@ const deleteEvent = {
   args: IDField,
   resolve: async (_parent: unknown, args: {id: number}) => {
     const eventRepository = getRepository(EventEntity);
-    const event = await eventRepository.findOne({ where: {id: args.id}});
-    if (!event) throw new Error('Event not found');
-    
-    event[Deleted] = true;
-    return await eventRepository.save(event);
+    return await eventRepository.update(args.id, {[Deleted]: true});
   }
 }
 

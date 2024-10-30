@@ -7,6 +7,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { buildSchema } from 'graphql';
 import { index_schema } from './graphql/schema/index.schema';
 import { Query } from 'mongoose';
+import { authenticateJWT } from './graphql/authentication/authentication';
 
 class App {
     public app: Application;
@@ -36,11 +37,19 @@ class App {
         hello: () => 'Hello world!',
         };
     
-        this.app.use('/graphql', graphqlHTTP({
-        schema: index_schema,
-        rootValue: root,
-        graphiql: true,
-        }));
+        this.app.use('/graphql', async (req, res, next) => {
+            try {
+                const context = await authenticateJWT(req);
+                graphqlHTTP({
+                    schema: index_schema,
+                    rootValue: root,
+                    graphiql: true,
+                    context,
+                })(req, res);
+            } catch (error) {
+                res.status(403).send('Forbidden');
+            }
+        });
     }
 
     private checkDatabaseHealth(): void {

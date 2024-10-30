@@ -18,19 +18,19 @@ export const updateUserValidate = Joi.object({
 export const createEventValidate = Joi.object({
     event_name: Joi.string().min(3).max(30).required(),
     description: Joi.string().optional(),
-    event_date_start: Joi.date().required(),
-    event_date_end: Joi.date().required(),
-    voucher_quantity: Joi.number().required(),
-    voucher_released: Joi.number().required()
+    event_date_start: Joi.date().min('now').required(),
+    event_date_end: Joi.date().greater(Joi.ref('event_date_start')).required(),
+    voucher_quantity: Joi.number().min(0).required(),
+    voucher_released: Joi.number().max(Joi.ref('voucher_quantity')).optional()
 });
 
 export const updateEventValidate = Joi.object({
     event_name: Joi.string().min(3).max(30).optional(),
     description: Joi.string().optional(),
-    event_date_start: Joi.date().optional(),
-    event_date_end: Joi.date().optional(),
-    voucher_quantity: Joi.number().optional(),
-    voucher_released: Joi.number().optional(),
+    event_date_start: Joi.date().min('now').optional(),
+    event_date_end: Joi.date().greater(Joi.ref('event_date_start')).optional(),
+    voucher_quantity: Joi.number().min(0).optional(),
+    voucher_released: Joi.number().max(Joi.ref('voucher_quantity')).optional(),
 });
 
 export const createVoucherValidate = Joi.object({
