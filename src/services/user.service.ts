@@ -44,7 +44,7 @@ export class UserService {
 
     // Get all users
     async getAll(): Promise<IUser[]> {
-        return await UserModel.find({ [Deleted]: false });
+        return await UserModel.find(AvailableItemMongo);
     }
 
     // Get a user by ID

@@ -1,6 +1,7 @@
 import { EventModel, IEvent } from '../entities/event.entity';
 import { EventLockService } from './event_lock.service';
 import { Deleted, ItemStatus, ActiveItem, AvailableItemMongo } from '../utils/variable';
+import { VoucherModel } from '../entities/voucher.entity';
 const eventLockService = new EventLockService();
 
 export class EventService {
@@ -50,8 +51,9 @@ export class EventService {
 
     // Delete event
     async deleteEvent(id: String) {
-        const deleteEvent = await EventModel.findOne(id);
+        const deleteEvent = await EventModel.findOne({_id: id});
         if (deleteEvent) {
+            await VoucherModel.updateMany({event_id: id}, { [Deleted]: true });
             const result = await EventModel.findByIdAndUpdate(id, { [Deleted]: true });
             if (result) return true;
         }
