@@ -6,3 +6,7 @@ export const ActiveItem = { status: ItemStatus.Active };
 
 export const AvailableItem = { [Deleted]: false };
 
+export const AvailableItemMongo = { $or: [
+    { [Deleted]: false },
+    { [Deleted]: { $exists: false } }
+] };

@@ -18,7 +18,7 @@ const time_lock = parseInt(process.env.TIME_LOCK_EVENT || '5');
 
 // Define EventLockType
 export const EventLockType = new GraphQLObjectType({
-  name: 'event',
+  name: 'eventlock',
   fields: () => (EventLockFields)
 });
 

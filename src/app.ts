@@ -36,15 +36,35 @@ class App {
         const root = {
         hello: () => 'Hello world!',
         };
-    
+
         this.app.use('/graphql', async (req, res, next) => {
+            const isGraphiQL = req.headers.accept && req.headers.accept.includes('text/html');
+            if (isGraphiQL) {
+                // If the request is for GraphiQL interface, skip authentication
+                return graphqlHTTP({
+                    schema: index_schema,
+                    rootValue: root,
+                    graphiql: {
+                        headerEditorEnabled: true,
+                        defaultQuery: `query {
+                            users {
+                                id
+                                name
+                                email
+                            }
+                        }`,
+                    },
+                })(req, res);
+            }
+        
             try {
+                // For non-GraphiQL requests, enforce authentication
                 const context = await authenticateJWT(req);
                 graphqlHTTP({
                     schema: index_schema,
                     rootValue: root,
-                    graphiql: true,
                     context,
+                    graphiql: false,
                 })(req, res);
             } catch (error) {
                 res.status(403).send('Forbidden');

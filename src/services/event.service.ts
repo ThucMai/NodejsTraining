@@ -1,16 +1,16 @@
 import { EventModel, IEvent } from '../entities/event.entity';
 import { EventLockService } from './event_lock.service';
-import { Deleted, ItemStatus, ActiveItem, AvailableItem } from '../utils/variable';
+import { Deleted, ItemStatus, ActiveItem, AvailableItemMongo } from '../utils/variable';
 const eventLockService = new EventLockService();
 
 export class EventService {
     // Get events
     async getEvents(): Promise<IEvent[]> {
-        return await EventModel.find({ ...AvailableItem });
+        return await EventModel.find({ ...AvailableItemMongo });
     }
 
     async getEvent(id: String): Promise<IEvent | null> {
-        return await EventModel.findOne({ _id: id, ...AvailableItem });
+        return await EventModel.findOne({ _id: id, ...AvailableItemMongo });
     }
 
     // Create event
@@ -50,7 +50,11 @@ export class EventService {
 
     // Delete event
     async deleteEvent(id: String) {
-        const result = await EventModel.findByIdAndUpdate(id, { [Deleted]: true });
-        return result ? true: false;
+        const deleteEvent = await EventModel.findOne(id);
+        if (deleteEvent) {
+            const result = await EventModel.findByIdAndUpdate(id, { [Deleted]: true });
+            if (result) return true;
+        }
+        return false;
     }
 }

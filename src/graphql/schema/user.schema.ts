@@ -1,10 +1,14 @@
 // schema.ts
 import { GraphQLObjectType, GraphQLSchema, GraphQLID, GraphQLString, GraphQLList } from 'graphql';
 import { getRepository } from 'typeorm';
-import { UserEntity } from '../entities/user.entity';
-import { AvailableItem, Deleted } from '../../utils/variable';
+import { UserEntity, IUser } from '../entities/user.entity';
+import { AvailableItem, ActiveItem, Deleted } from '../../utils/variable';
 import { createUserRule, updateUserRule } from '../validate/user.validate';
 import { hashPassword } from '../../utils/function';
+import jwt from 'jsonwebtoken';
+const bcrypt = require('bcrypt');
+const jwtSecret = process.env.JWT_SECRET || '';
+const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '1h';
 
 const IDField = {
   id: { type: GraphQLID },
@@ -23,6 +27,26 @@ export const UserType = new GraphQLObjectType({
   name: 'user',
   fields: () => ({...IDField, ...UserFields})
 });
+
+export const login = async (data: Partial<IUser>) => {
+  const { username, password } = data;
+  const userRepository = getRepository(UserEntity);
+  const user = await userRepository.findOne({ where: { username: username as string, ...ActiveItem, ...AvailableItem }});
+
+  if (!user) {
+      return { success: false, message: 'Invalid username or password' }
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+      return { success: false, message: 'Invalid password' }
+  }
+
+  // Generate JWT
+  const token = jwt.sign({ id: user.id, username: user.username }, jwtSecret, { expiresIn: jwtExpiresIn });
+
+  return { success: true, message: 'Login Success', data: { 'token': token }}
+}
 
 const user = {
   type: UserType,

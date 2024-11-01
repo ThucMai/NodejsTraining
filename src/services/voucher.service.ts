@@ -3,15 +3,15 @@ import { EventService } from './event.service';
 import EmailQueue from '../queues/sendmail';
 import { EventModel } from '../entities/event.entity';
 import { generateVoucherCode } from '../utils/function';
-import { ItemStatus, Deleted, AvailableItem, ActiveItem } from '../utils/variable';
+import { ItemStatus, Deleted, AvailableItemMongo, ActiveItem } from '../utils/variable';
 
 export class VoucherService {
     // Get Vouchers
     async getVouchers(id: string | null): Promise<IVoucher[]> {
         if (!id) {
-            return await VoucherModel.find(AvailableItem);
+            return await VoucherModel.find(AvailableItemMongo);
         }
-        return await VoucherModel.find({ '_id': id, ...AvailableItem });
+        return await VoucherModel.find({ '_id': id, ...AvailableItemMongo });
     }
 
     // Create Voucher
@@ -35,18 +35,18 @@ export class VoucherService {
                 // Check if the event has ended or all vouchers have been released
                 if (event.event_date_end < new Date() || event.voucher_quantity <= event.voucher_released) {
                     await session.abortTransaction();
-                    return false;
+                    return 'Event end or voucher number is maximum';
                 }
                 let voucher_code = data.voucher_code ?? '';
                 if (voucher_code) {
-                    const isCodeExist = await VoucherModel.findOne({ voucher_code, ...AvailableItem });
+                    const isCodeExist = await VoucherModel.findOne({ voucher_code, ...AvailableItemMongo });
                     if (isCodeExist) {
                         await session.abortTransaction();
-                        return false;
+                        return 'Your voucher code already exist';
                     }
                 } else {
                     voucher_code = generateVoucherCode(7);
-                    while (await VoucherModel.findOne({ voucher_code: voucher_code, ...AvailableItem })) {
+                    while (await VoucherModel.findOne({ voucher_code: voucher_code, ...AvailableItemMongo })) {
                         voucher_code = generateVoucherCode(7);
                     }
                 }
@@ -91,7 +91,7 @@ export class VoucherService {
 
     // Edit Voucher
     async editVoucher(id: string, data: Partial<IVoucher>): Promise<IVoucher | null> {
-        const voucherUpdate = await VoucherModel.findOne({ id, ...AvailableItem });
+        const voucherUpdate = await VoucherModel.findOne({ id, ...AvailableItemMongo });
         if (!voucherUpdate) {
             return null;
         }

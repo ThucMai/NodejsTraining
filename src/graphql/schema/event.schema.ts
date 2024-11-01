@@ -4,6 +4,7 @@ import { EventEntity } from '../entities/event.entity';
 import { ItemStatus, AvailableItem, ActiveItem, Deleted } from '../../utils/variable';
 import { createEventRule, updateEventRule } from '../validate/event.validate';
 import { GraphQLDateTime } from 'graphql-scalars';
+import { VoucherEntity } from '../entities/voucher.entity';
 
 const IDField = {
   id: { type: GraphQLID }
@@ -109,7 +110,15 @@ const deleteEvent = {
   args: IDField,
   resolve: async (_parent: unknown, args: {id: number}) => {
     const eventRepository = getRepository(EventEntity);
-    return await eventRepository.update(args.id, {[Deleted]: true});
+
+    const eventDelete = await eventRepository.findOne({where: {id: args.id}});
+    if (eventDelete) {
+      const voucherRespository = getRepository(VoucherEntity);
+      await voucherRespository.update({event_id: args.id}, {[Deleted]: true});
+      const result = await eventRepository.update(args.id, {[Deleted]: true});
+      if (result) return true;
+    }
+    return false;
   }
 }
 
