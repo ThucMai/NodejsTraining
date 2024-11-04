@@ -1,27 +1,14 @@
 import { Request, Response,NextFunction } from 'express';
+import { createEventValidate, updateEventValidate } from '../utils/validate';
 import Joi from 'joi';
 
 export const createEventRule = (req: Request, res: Response, next: NextFunction) => {
-    const schema =  Joi.object({
-        event_name: Joi.string().min(3).max(30).required(),
-        description: Joi.string().optional(),
-        event_date_start: Joi.date().required(),
-        event_date_end: Joi.date().required(),
-        voucher_quantity: Joi.number().required(),
-        voucher_released: Joi.number().required()
-    });
+    const schema =  createEventValidate;
     return validateEvent(schema)(req, res, next);
 }
 
 export const updateEventRule = (req: Request, res: Response, next: NextFunction) => {
-    const schema = Joi.object({
-        event_name: Joi.string().min(3).max(30).optional(),
-        description: Joi.string().optional(),
-        event_date_start: Joi.date().optional(),
-        event_date_end: Joi.date().optional(),
-        voucher_quantity: Joi.number().optional(),
-        voucher_released: Joi.number().optional(),
-    });
+    const schema = updateEventValidate;
     return validateEvent(schema)(req, res, next);
 }
 

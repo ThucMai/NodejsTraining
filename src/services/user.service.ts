@@ -1,12 +1,11 @@
 // Create Service
-import { create } from 'domain';
 import { UserModel, IUser } from '../entities/user.entity';
 import { ItemStatus, ActiveItem, AvailableItemMongo, Deleted } from '../utils/variable';
 import jwt from 'jsonwebtoken';
 import { hashPassword } from '../utils/function';
+import { jwtSecret, jwtExpiresIn } from '../utils/variable';
+import { BaseResponse } from '../utils/type';
 const bcrypt = require('bcrypt');
-const jwtSecret = process.env.JWT_SECRET || '';
-const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '1h';
 
 export class UserService {
     async login(data: Partial<IUser>) {
@@ -43,34 +42,74 @@ export class UserService {
     }
 
     // Get all users
-    async getAll(): Promise<IUser[]> {
-        return await UserModel.find(AvailableItemMongo);
+    async getAll(): Promise<BaseResponse> {
+        const result = await UserModel.find(AvailableItemMongo);
+        return { success: true, data: result };
     }
 
     // Get a user by ID
-    async getById(id: string): Promise<IUser | null> {
-        return await UserModel.findOne({ _id: id, ...AvailableItemMongo });
+    async getById(id: string): Promise<BaseResponse> {
+        const result = await UserModel.findOne({ _id: id, ...AvailableItemMongo });
+        if (result) {
+            return { success: true, data: result };
+        }
+        return { success: false, message: 'Cannot find users' };
     }
 
     // Create a new user
-    async createUser(data: Partial<IUser>): Promise<IUser> {
+    async createUser(data: Partial<IUser>): Promise<BaseResponse> {
+        const userExist = await UserModel.find({
+            $or: [{ username: data.username }, { email: data.email }]
+        });
+        if (userExist.length > 0) {
+            return { success: false, message: 'Username or Email already exist' };
+        }
+
         const password = data.password || '';
         const hashedPassword = await hashPassword(password);
         const user = new UserModel({ ...data, password: hashedPassword });
-        return await user.save();
+        const result = await user.save();
+        if (result) {
+            return { success: true, data: result };
+        }
+        return { success:false, message: 'Create user failed' };
     }
 
     // Update a user by ID
-    async updateUser(id: string, data: Partial<IUser>): Promise<IUser | null> {
+    async updateUser(id: string, data: Partial<IUser>): Promise<BaseResponse>  {
+        if (data.email || data.username) {
+            const username = data.username;
+            const email = data.email;
+            let checkExistCondition  = [];
+            if (username) {
+                checkExistCondition.push({ username: username });
+            }
+            if (email) {
+                checkExistCondition.push({ email: email });
+            }
+            const isExist = await UserModel.find({
+                $and: [
+                    { _id: { $ne: id } },
+                    { $or: checkExistCondition }
+                ]
+            });
+            if (isExist.length > 0) {
+                return { success: false, message: 'Username or email already exist' };
+            }
+        }
         if (data.password) {
             data.password = await hashPassword(data.password);
         }
-        return await UserModel.findByIdAndUpdate({ id, ...AvailableItemMongo, ...ActiveItem }, data, { new: true });
+        const result = await UserModel.findOneAndUpdate({  _id: id, ...AvailableItemMongo, ...ActiveItem }, data, { new: true });
+        if (result) {
+            return { success: true, data: result };
+        }
+        return { success: false, message: 'Failed when update user' };
     }
 
     // Delete a user by ID
-    async deleteUser(id: string): Promise<IUser | boolean> {
+    async deleteUser(id: string): Promise<BaseResponse> {
         const result = await UserModel.findByIdAndUpdate(id, {[Deleted]: true});
-        return result ? true: false;
+        return result ? { success: true }: { success: false };
     }
 }

@@ -1,13 +1,13 @@
 import { EventLockModel, IEventLock } from '../entities/event_lock.entity';
 import { EventModel, IEvent } from '../entities/event.entity';
 import { Request } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+import { AuthRequest, BaseResponse } from '../utils/type';
 import mongoose from 'mongoose';
 
 const time_lock = parseInt(process.env.TIME_LOCK_EVENT || '5'); //minutes
 
 export class EventLockService {
-    async editable(event_id: string, req: AuthRequest): Promise<boolean> {
+    async editable(event_id: string, req: AuthRequest): Promise<BaseResponse> {
 
         const session = await EventLockModel.startSession();
         session.startTransaction();
@@ -18,7 +18,7 @@ export class EventLockService {
             if (!event) {
                 await session.abortTransaction();
                 session.endSession();
-                return false;
+                return { success: false };
             }
 
             const user_id = req?.user?.id || 0;
@@ -31,7 +31,7 @@ export class EventLockService {
             if (eventLockByMe) {
                 await session.abortTransaction();
                 session.endSession();
-                return true;
+                return { success: true };
             } 
 
             const eventLocked = await EventLockModel.findOne({
@@ -42,29 +42,29 @@ export class EventLockService {
             if (eventLocked) {
                 await session.abortTransaction();
                 session.endSession();
-                return false;
+                return { success: false };
             }
 
             await session.commitTransaction();
             session.endSession();
-            return true;
+            return { success: true };
         } catch (error) {
             await session.abortTransaction();
             session.endSession();
-            throw error;
+            return { success: false };
         }  
     }
 
-    async enterEdit(event_id: string, req: AuthRequest): Promise<boolean> {
+    async enterEdit(event_id: string, req: AuthRequest): Promise<BaseResponse> {
         const session = await EventLockModel.startSession();
         session.startTransaction();
 
         try {
             const editable = await this.editable(event_id, req);
-            if (!editable) {
+            if (!editable.success) {
                 await session.abortTransaction();
                 session.endSession();
-                return false
+                return { success: false };
             };
 
             await EventLockModel.deleteMany({ event_id });
@@ -79,17 +79,19 @@ export class EventLockService {
 
             await session.commitTransaction();
             session.endSession();
-            return true;
+            return { success: true };;
         } catch (error) {
             await session.abortTransaction();
             session.endSession();
-            throw error;
+            return { success: false };
         }
     }
 
-    async maintainEdit(event_id: string, req: AuthRequest): Promise<boolean> {
+    async maintainEdit(event_id: string, req: AuthRequest): Promise<BaseResponse> {
         const editable = await this.editable(event_id, req);
-        if (!editable) return false;
+        if (!editable.success) {
+            return { success: false };
+        }
 
         const user_id = req?.user?.id || 0;
         const result = await EventLockModel.findOneAndUpdate(
@@ -101,7 +103,7 @@ export class EventLockService {
                 time_lock: new Date()
             }
         );
-        return result ? true : false;
+        return { success: Boolean(result) };
     }
 
     async deleteEventLock(event_id: String, user_id: string | null): Promise<boolean> {

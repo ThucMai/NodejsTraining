@@ -3,19 +3,26 @@ import { EventService } from './event.service';
 import EmailQueue from '../queues/sendmail';
 import { EventModel } from '../entities/event.entity';
 import { generateVoucherCode } from '../utils/function';
+import { BaseResponse } from '../utils/type';
 import { ItemStatus, Deleted, AvailableItemMongo, ActiveItem } from '../utils/variable';
 
 export class VoucherService {
     // Get Vouchers
-    async getVouchers(id: string | null): Promise<IVoucher[]> {
+    async getVouchers(id: string | null): Promise<BaseResponse> {
         if (!id) {
-            return await VoucherModel.find(AvailableItemMongo);
+            const result =  await VoucherModel.find(AvailableItemMongo);
+            if (result) {
+                return { success: true, data: result };
+            }
+            return { success: false, message: 'Cannot find voucher' };
+        } else {
+            const result = await VoucherModel.find({ '_id': id, ...AvailableItemMongo });
+            return { success: true, data: result };
         }
-        return await VoucherModel.find({ '_id': id, ...AvailableItemMongo });
     }
 
     // Create Voucher
-    async createVoucher(data: Partial<IVoucher>): Promise<IVoucher | boolean | string> {
+    async createVoucher(data: Partial<IVoucher>): Promise<BaseResponse> {
         const MAX_RETRIES = 3;
         let retryCount = 0;
 
@@ -24,25 +31,24 @@ export class VoucherService {
             session.startTransaction();
         
             try {
-                const eventService = new EventService();
-                const event = await eventService.getEvent(data.event_id!);
+                const event = await EventModel.findOne({_id: data.event_id!});
 
                 if (!event || event.status == ItemStatus.Inactive) {
                     await session.abortTransaction();
-                    return 'Cannot find event or event inactive';
+                    return { success: false, message: 'Cannot find event or event inactive' };
                 }
 
                 // Check if the event has ended or all vouchers have been released
                 if (event.event_date_end < new Date() || event.voucher_quantity <= event.voucher_released) {
                     await session.abortTransaction();
-                    return 'Event end or voucher number is maximum';
+                    return { success: false, message: 'Event end or voucher number is maximum' };
                 }
                 let voucher_code = data.voucher_code ?? '';
                 if (voucher_code) {
                     const isCodeExist = await VoucherModel.findOne({ voucher_code, ...AvailableItemMongo });
                     if (isCodeExist) {
                         await session.abortTransaction();
-                        return 'Your voucher code already exist';
+                        return { success: false, message: 'Your voucher code already exist' };
                     }
                 } else {
                     voucher_code = generateVoucherCode(7);
@@ -56,7 +62,7 @@ export class VoucherService {
                 );
                 if (!eventUpdate) {
                     await session.abortTransaction();
-                    return false;
+                    return { success: false, message: 'Cannot release voucher' };
                 }
 
                 // Create and save the voucher in the transaction session
@@ -77,11 +83,11 @@ export class VoucherService {
                 });
 
                 await session.commitTransaction();
-                return savedVoucher;
+                return { success: true, data: savedVoucher};
             } catch (error) {
                 retryCount++;
                 console.log(`Retrying transaction... Attempt ${retryCount}`);
-                return false;
+                return { success: false, message: 'Cannot release voucher' };
             } finally {
                 await session.endSession();
             }
@@ -90,10 +96,10 @@ export class VoucherService {
     } 
 
     // Edit Voucher
-    async editVoucher(id: string, data: Partial<IVoucher>): Promise<IVoucher | null> {
+    async editVoucher(id: string, data: Partial<IVoucher>): Promise<BaseResponse> {
         const voucherUpdate = await VoucherModel.findOne({ id, ...AvailableItemMongo });
         if (!voucherUpdate) {
-            return null;
+            return { success: false, message: 'Cannot find voucher to update' };
         }
         let voucherCode = '';
         if (!data.voucher_code) {
@@ -105,7 +111,7 @@ export class VoucherService {
                 ...ActiveItem
             });
             if (isExist) {
-                return null;
+                return { success: false, message: 'Voucher code is already exist' };
             }
             voucherCode = data.voucher_code;
         }
@@ -117,11 +123,16 @@ export class VoucherService {
             issued_date: data.issued_date ?? voucherUpdate.issued_date,
             expired_date: data.expired_date ?? voucherUpdate.expired_date
         }
-        return await VoucherModel.findOneAndUpdate({ id }, dataUpdate, {new: true});
+        const result = await VoucherModel.findOneAndUpdate({ id }, dataUpdate, {new: true});
+        if (result) {
+            return { success: true, data: result };
+        }
+        return { success: false, message: 'Cannot edit voucher' };
     }
 
     // Delete Voucher
-    async deleteVoucher(id: string) {
-        return await VoucherModel.findByIdAndUpdate(id, {[Deleted]: true});
+    async deleteVoucher(id: string): Promise<BaseResponse> {
+        const result = await VoucherModel.findByIdAndUpdate(id, {[Deleted]: true});
+        return { success: Boolean(result) };
     }
 }

@@ -108,6 +108,9 @@ user_router.post('/', createUserRule, createUser);
  *               name:
  *                 type: string
  *                 example: "Uchiha Itachi"
+ *               username:
+ *                 type: string
+ *                 example: "UchihaItachi"
  *               email:
  *                 type: string
  *                 example: "itachi@uchiha.com"

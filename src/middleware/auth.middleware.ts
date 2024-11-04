@@ -1,12 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
+import { AuthRequest } from '../utils/type';
+import { jwtSecret } from '../utils/variable';
 import jwt from 'jsonwebtoken';
-
-const jwtSecret = process.env.JWT_SECRET || '';
-export interface AuthRequest extends Request {
-    user?: {
-        id: string;
-    };
-}
 
 export const authenticateJWT = (req: AuthRequest, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
